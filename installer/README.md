@@ -23,7 +23,7 @@ attached to GitHub releases.
 ## Release
 1. Bump `AppVersion` in `InExXen.iss`.
 2. `build.ps1 -Version 1.2.0.0` (the client version players and the server see).
-3. `release.ps1 -Tag v1.2` prepares `outputelease\` (manifest + only the changed files, gzipped);
+3. `release.ps1 -Tag v1.2` prepares `output\release\` (manifest + only the changed files, gzipped);
    add `-Publish` to create the GitHub release (draft, upload, then publish).
 
 Installed clients check `releases/latest/download/manifest.txt` at every start and download
