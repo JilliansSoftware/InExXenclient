@@ -64,7 +64,7 @@ namespace ClassicUO.Game.Managers
                 Log.Trace("No macros.xml file. Creating a default file.");
 
                 Clear();
-                CreateDefaultMacros();
+                IEX.IexDefaults.CreateMacros(this); // IEX: old-client hotkeys instead of CreateDefaultMacros()
                 Save();
 
                 return;

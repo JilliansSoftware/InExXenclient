@@ -35,6 +35,9 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Files]
 Source: "stage\InExXen\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Razor starting profile (title-bar reagent/bandage counters). Not in the update manifest,
+; so a player's own Razor settings are never overwritten.
+Source: "razor-default.xml"; DestDir: "{app}\Data\Plugins\Razor\Profiles"; DestName: "default.xml"; Flags: onlyifdoesntexist
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\ClassicUO.exe"; WorkingDir: "{app}"

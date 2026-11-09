@@ -58,7 +58,7 @@ namespace ClassicUO.Configuration
 
         public static Profile NewFromDefault()
         {
-            return ConfigurationResolver.Load<Profile>(Path.Combine(RootPath, "default.json"), ProfileJsonContext.DefaultToUse.Profile) ?? new Profile();
+            return ConfigurationResolver.Load<Profile>(Path.Combine(RootPath, "default.json"), ProfileJsonContext.DefaultToUse.Profile) ?? IEX.IexDefaults.NewProfile(); // IEX: shard defaults
         }
 
         private static void ValidateFields(Profile profile)

@@ -13,7 +13,16 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
   `iex.clientCheck.enabled` is true (ModernUO `Custom/IEX/ClientVersionCheck.cs`, off by default)
 
 ## B. Better defaults
+- [x] 1. Old-client hotkeys (IMY macros.txt) on new characters (`IEX/IexDefaults.cs`)
+- [x] 2. Old-client settings on new characters (gray out-of-range objects; the rest already matched)
+- [x] 3a. Circle of transparency on (original-client style)
+- [ ] 3b. Health bars over damaged mobiles - cut 2026-11-09
+- [x] 3c. Larger default game window (800x600)
+- [ ] 3d. Grid-style containers - cut 2026-11-09
+- [x] 3e. Journal keeps 500 lines; system/object/client messages shown
+- [x] 4. Razor starting profile: reagent and bandage counters in the title bar (installer only, never overwritten by updates)
+- [x] 5. "Save current settings as defaults for new users" mentioned in release notes
 ## C. Shard panels
 ## D. Atmosphere
 ## E. Keep-out list
-(not reviewed yet)
+(C-E not reviewed yet)
