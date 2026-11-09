@@ -143,7 +143,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
                 Add
                 (
-                    new Label(string.Format(ResGumps.CUOVersion0, CUOEnviroment.Version), false, 0x034E, font: 9)
+                    new Label(IEX.IexClient.VersionLabel /* IEX: branding */, false, 0x034E, font: 9)
                     {
                         X = 286,
                         Y = 465
@@ -244,7 +244,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
 
                 Add
                 (
-                    new Label(string.Format(ResGumps.CUOVersion0, CUOEnviroment.Version), false, 0x0481, font: 9)
+                    new Label(IEX.IexClient.VersionLabel /* IEX: branding */, false, 0x0481, font: 9)
                     {
                         X = 286,
                         Y = 465
@@ -377,7 +377,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     false,
                     false,
                     false,
-                    "<body link=\"#FF00FF00\" vlink=\"#FF00FF00\" ><a href=\"https://www.classicuo.eu/support.php\">Support ClassicUO!",
+                    IEX.IexClient.Link(IEX.IexClient.ClassicUOUrl, "Powered by ClassicUO") /* IEX: branding */,
                     0x32,
                     true,
                     isunicode: true,
@@ -386,6 +386,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
             );
 
 
+            if (!string.IsNullOrEmpty(IEX.IexClient.WebsiteUrl)) // IEX: hide unset links
             Add
             (
                 new HtmlControl
@@ -397,7 +398,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     false,
                     false,
                     false,
-                    "<body link=\"#FF00FF00\" vlink=\"#FF00FF00\" ><a href=\"https://www.classicuo.eu\">Website",
+                    IEX.IexClient.Link(IEX.IexClient.WebsiteUrl, "Website") /* IEX: branding */,
                     0x32,
                     true,
                     isunicode: true,
@@ -405,6 +406,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                 )
             );
 
+            if (!string.IsNullOrEmpty(IEX.IexClient.DiscordUrl)) // IEX: hide unset links
             Add
             (
                 new HtmlControl
@@ -416,7 +418,7 @@ namespace ClassicUO.Game.UI.Gumps.Login
                     false,
                     false,
                     false,
-                    "<body link=\"#FF00FF00\" vlink=\"#FF00FF00\" ><a href=\"https://discord.gg/VdyCpjQ\">Join Discord",
+                    IEX.IexClient.Link(IEX.IexClient.DiscordUrl, "Join Discord") /* IEX: branding */,
                     0x32,
                     true,
                     isunicode: true,

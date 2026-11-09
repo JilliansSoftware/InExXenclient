@@ -3,7 +3,7 @@
 ; Stage folder is built from the reference install (see README.md).
 
 #define AppName "In Ex Xen"
-#define AppVersion "1.0"
+#define AppVersion "1.1"
 #define ShardHost "play.inexxen.com"
 #define ShardPort "2593"
 #define ClientVersion "5.0.6.5"

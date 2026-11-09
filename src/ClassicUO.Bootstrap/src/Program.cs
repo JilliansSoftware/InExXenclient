@@ -43,6 +43,9 @@ AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 };
 #endif
 
+if (ClassicUO.IEX.Updater.Run(args)) // IEX: auto-update before the client loads
+    return;
+
 Global.Host.Run(args);
 Console.WriteLine("finished");
 

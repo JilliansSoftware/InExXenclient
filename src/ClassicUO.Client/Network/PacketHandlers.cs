@@ -930,6 +930,7 @@ namespace ClassicUO.Network
             }
 
             NetClient.Socket.Send_ClientVersion(Settings.GlobalSettings.ClientVersion);
+            IEX.IexClient.SendVersion(NetClient.Socket); // IEX: server checks client version
 
             GameActions.SingleClick(world, world.Player);
             NetClient.Socket.Send_SkillsRequest(world.Player.Serial);

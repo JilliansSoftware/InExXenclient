@@ -21,6 +21,12 @@ attached to GitHub releases.
 `settings.json` on first install only, so reinstalling keeps players' settings.
 
 ## Release
-1. Bump `AppVersion` in `InExXen.iss` (and `-Version` for the client build).
-2. Run `build.ps1`.
-3. Tag `vX.Y` on the `inexxen` branch, push, attach `output\InExXen-Setup.exe` to the release.
+1. Bump `AppVersion` in `InExXen.iss`.
+2. `build.ps1 -Version 1.2.0.0` (the client version players and the server see).
+3. `release.ps1 -Tag v1.2` prepares `outputelease\` (manifest + only the changed files, gzipped);
+   add `-Publish` to create the GitHub release (draft, upload, then publish).
+
+Installed clients check `releases/latest/download/manifest.txt` at every start and download
+what changed, including the launcher itself. Set `IEX_UPDATE_MANIFEST` to a local URL to test
+against `release.ps1 -BaseUrl http://127.0.0.1:8765`; create a `noupdate` file next to
+ClassicUO.exe or pass `-noupdate` to skip updating.

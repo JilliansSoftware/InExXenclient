@@ -49,6 +49,9 @@ if (-not (Test-Path $razorZip)) { Write-Host "Downloading $RazorUrl"; Invoke-Web
 Expand-Archive $razorZip "$stage\Data\Plugins\Razor" -Force
 Get-ChildItem $stage -Recurse -Include *.pdb, *.nsi, *.nsh | Remove-Item -Force
 
+# ClassicUO is BSD-2-Clause: its copyright notice ships with the binaries.
+Copy-Item (Join-Path $repo 'LICENSE.md') "$stage\ClassicUO-LICENSE.txt"
+
 # UO data: everything ClassicUO reads; skip EA executables, UO3D files, personal config.
 $skip = @('*.exe', '*.dll', '*.zip', '*.bin', 'Blueprints.tbp', 'Login.cfg', 'uo.cfg', 'Uoreg.cfg',
     'Uoupg.cfg', 'Uomax.cfg', 'chardata.mul', 'Ignore.lst', 'macros.txt', 'macros2d.txt', 'Umacros.txt',

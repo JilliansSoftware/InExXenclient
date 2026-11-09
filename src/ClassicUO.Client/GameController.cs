@@ -55,7 +55,7 @@ namespace ClassicUO
 
             Window.ClientSizeChanged += WindowOnClientSizeChanged;
             Window.AllowUserResizing = true;
-            Window.Title = $"ClassicUO - {CUOEnviroment.Version}";
+            Window.Title = IEX.IexClient.WindowTitle(null); // IEX: branding
             IsMouseVisible = Settings.GlobalSettings.RunMouseInASeparateThread;
 
             IsFixedTimeStep = false; // Settings.GlobalSettings.FixedTimeStep;
@@ -169,22 +169,7 @@ namespace ClassicUO
 
         public void SetWindowTitle(string title)
         {
-            if (string.IsNullOrEmpty(title))
-            {
-#if DEV_BUILD
-                Window.Title = $"ClassicUO [dev] - {CUOEnviroment.Version}";
-#else
-                Window.Title = $"ClassicUO - {CUOEnviroment.Version}";
-#endif
-            }
-            else
-            {
-#if DEV_BUILD
-                Window.Title = $"{title} - ClassicUO [dev] - {CUOEnviroment.Version}";
-#else
-                Window.Title = $"{title} - ClassicUO - {CUOEnviroment.Version}";
-#endif
-            }
+            Window.Title = IEX.IexClient.WindowTitle(title); // IEX: branding
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
