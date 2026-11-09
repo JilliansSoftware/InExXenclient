@@ -1,0 +1,4 @@
+# Built by build.ps1; the installer ships as a GitHub release asset.
+downloads/
+stage/
+output/
