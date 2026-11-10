@@ -303,6 +303,13 @@ namespace ClassicUO.Game.UI.Gumps
             IsMinimized = bool.Parse(xml.GetAttribute("isminimized"));
         }
 
+        // IEX: rebuild lines after the "Text size" option changes (wrapping depends on it).
+        public void IexReload()
+        {
+            _journalEntries.IexClear();
+            InitializeJournalEntries();
+        }
+
         private void InitializeJournalEntries()
         {
             foreach (JournalEntry t in JournalManager.Entries)
@@ -367,6 +374,9 @@ namespace ClassicUO.Game.UI.Gumps
                 int maxheight = _scrollBar.Value + _scrollBar.Height;
 
 
+                // IEX: text size. Heights below are on-screen (scaled); DrawScaled clips in text pixels.
+                float scale = IEX.IexText.Scale;
+
                 renderLists.AddGumpNoAtlas
                 (
                     batcher =>
@@ -377,96 +387,48 @@ namespace ClassicUO.Game.UI.Gumps
                             RenderedText hour = _hours[i];
                             TextType type = _text_types[i];
 
-
                             if (!CanBeDrawn(type))
                             {
                                 continue;
                             }
 
+                            int th = (int)(t.Height * scale);
+                            int hourW = (int)(hour.Width * scale);
 
-                            if (height + t.Height <= _scrollBar.Value)
+                            if (height + th <= _scrollBar.Value)
                             {
                                 // this entry is above the renderable area.
-                                height += t.Height;
+                                height += th;
                             }
-                            else if (height + t.Height <= maxheight)
+                            else if (height + th <= maxheight)
                             {
                                 int yy = height - _scrollBar.Value;
 
                                 if (yy < 0)
                                 {
                                     // this entry starts above the renderable area, but exists partially within it.
-                                    hour.Draw
-                                    (
-                                        batcher,
-                                        hour.Width,
-                                        hour.Height,
-                                        mx,
-                                        y,
-                                        t.Width,
-                                        t.Height + yy,
-                                        0,
-                                        -yy,
-                                        layerDepth
-                                    );
-
-                                    t.Draw
-                                    (
-                                        batcher,
-                                        t.Width,
-                                        t.Height,
-                                        mx + hour.Width,
-                                        y,
-                                        t.Width,
-                                        t.Height + yy,
-                                        0,
-                                        -yy,
-                                        layerDepth
-                                    );
-
-                                    my += t.Height + yy;
+                                    int skip = (int)(-yy / scale);
+                                    hour.DrawScaled(batcher, mx, y, skip, hour.Height - skip, layerDepth, scale);
+                                    t.DrawScaled(batcher, mx + hourW, y, skip, t.Height - skip, layerDepth, scale);
+                                    my += th + yy;
                                 }
                                 else
                                 {
                                     // this entry is completely within the renderable area.
-                                    hour.Draw(batcher, mx, my, layerDepth);
-                                    t.Draw(batcher, mx + hour.Width, my, layerDepth);
-                                    my += t.Height;
+                                    hour.Draw(batcher, mx, my, layerDepth, 1f, 0, scale);
+                                    t.Draw(batcher, mx + hourW, my, layerDepth, 1f, 0, scale);
+                                    my += th;
                                 }
 
-                                height += t.Height;
+                                height += th;
                             }
                             else
                             {
                                 int yyy = maxheight - height;
+                                int visible = (int)(yyy / scale);
 
-                                hour.Draw
-                                (
-                                    batcher,
-                                    hour.Width,
-                                    hour.Height,
-                                    mx,
-                                    y + _scrollBar.Height - yyy,
-                                    t.Width,
-                                    yyy,
-                                    0,
-                                    0,
-                                    layerDepth
-                                );
-
-                                t.Draw
-                                (
-                                    batcher,
-                                    t.Width,
-                                    t.Height,
-                                    mx + hour.Width,
-                                    y + _scrollBar.Height - yyy,
-                                    t.Width,
-                                    yyy,
-                                    0,
-                                    0,
-                                    layerDepth
-                                );
+                                hour.DrawScaled(batcher, mx, y + _scrollBar.Height - yyy, 0, visible, layerDepth, scale);
+                                t.DrawScaled(batcher, mx + hourW, y + _scrollBar.Height - yyy, 0, visible, layerDepth, scale);
 
                                 // can't fit any more entries - so we break!
                                 break;
@@ -503,7 +465,7 @@ namespace ClassicUO.Game.UI.Gumps
                 {
                     if (i < _text_types.Count && CanBeDrawn(_text_types[i]))
                     {
-                        height += _entries[i].Height;
+                        height += IEX.IexText.Height(_entries[i]); // IEX: text size
                     }
                 }
 
@@ -525,6 +487,20 @@ namespace ClassicUO.Game.UI.Gumps
                 }
             }
 
+            // IEX: see JournalGump.IexReload
+            public void IexClear()
+            {
+                while (_entries.Count > 0)
+                {
+                    _entries.RemoveFromFront().Destroy();
+                    _hours.RemoveFromFront().Destroy();
+                    _text_types.RemoveFromFront();
+                }
+
+                _scrollBar.MaxValue = 0;
+                _scrollBar.Value = 0;
+            }
+
             public void AddEntry
             (
                 string text,
@@ -537,7 +513,7 @@ namespace ClassicUO.Game.UI.Gumps
             {
                 bool maxScroll = _scrollBar.Value == _scrollBar.MaxValue;
 
-                while (_entries.Count > 199)
+                while (_entries.Count >= Constants.MAX_JOURNAL_HISTORY_COUNT) // IEX: was > 199; follows the journal history length
                 {
                     _entries.RemoveFromFront().Destroy();
 
@@ -564,14 +540,14 @@ namespace ClassicUO.Game.UI.Gumps
                     (byte) font,
                     isUnicode,
                     FontStyle.Indention | FontStyle.BlackBorder,
-                    maxWidth: Width - (18 + h.Width)
+                    maxWidth: (int)((Width - (18 + IEX.IexText.Width(h))) / IEX.IexText.Scale) // IEX: text size
                 );
 
                 _entries.AddToBack(rtext);
 
                 _text_types.AddToBack(text_type);
 
-                _scrollBar.MaxValue += rtext.Height;
+                _scrollBar.MaxValue += IEX.IexText.Height(rtext); // IEX: text size
 
                 if (maxScroll)
                 {

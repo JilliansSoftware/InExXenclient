@@ -97,6 +97,8 @@ namespace ClassicUO.Game.Managers
                 return;
             }
 
+            IEX.IexFonts.Apply(type, ref font, ref unicode); // IEX: readable click labels
+
             Profile currentProfile = ProfileManager.CurrentProfile;
 
             if (currentProfile != null && currentProfile.OverrideAllFonts)

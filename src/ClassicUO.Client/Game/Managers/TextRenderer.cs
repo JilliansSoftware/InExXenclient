@@ -60,7 +60,9 @@ namespace ClassicUO.Game.Managers
                 int x = o.RealScreenPosition.X;
                 int y = o.RealScreenPosition.Y;
 
-                if (o.RenderedText.PixelCheck(mouseX - x, mouseY - y))
+                float iexScale = IEX.IexText.Scale; // IEX: text size
+
+                if (o.RenderedText.PixelCheck((int)((mouseX - x) / iexScale), (int)((mouseY - y) / iexScale)))
                 {
                     SelectedObject.Object = o;
                 }
@@ -85,7 +87,8 @@ namespace ClassicUO.Game.Managers
                     y,
                     layerDepth,
                     alpha,
-                    hue
+                    hue,
+                    iexScale
                 );
             }
         }
@@ -182,8 +185,8 @@ namespace ClassicUO.Game.Managers
             {
                 X = msg.RealScreenPosition.X,
                 Y = msg.RealScreenPosition.Y,
-                Width = msg.RenderedText.Width,
-                Height = msg.RenderedText.Height
+                Width = IEX.IexText.Width(msg.RenderedText), // IEX: text size
+                Height = IEX.IexText.Height(msg.RenderedText) // IEX: text size
             };
 
             for (int i = 0; i < _bounds.Count; i++)

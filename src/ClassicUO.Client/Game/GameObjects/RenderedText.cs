@@ -772,6 +772,12 @@ namespace ClassicUO.Game
             );
         }
 
+        // IEX: clipped draw at the "Text size" scale. offsetY/clipHeight are in unscaled text pixels.
+        public bool DrawScaled(UltimaBatcher2D batcher, int dx, int dy, int offsetY, int clipHeight, float layerDepth, float scale)
+        {
+            return HasContent && DrawGlyphs(batcher, dx, dy, layerDepth, 1f, 0, scale, 0, offsetY, Width, clipHeight);
+        }
+
         public unsafe void CreateTexture()
         {
             // Atlas path: generate FontInfo for Width/Height/LinesCount/Links,

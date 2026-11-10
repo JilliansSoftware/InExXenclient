@@ -62,6 +62,7 @@ namespace ClassicUO.Game.UI.Gumps
         // fonts
         private FontSelector _fontSelectorChat;
         private Checkbox _forceUnicodeJournal;
+        private HSliderBar _iexTextSize; // IEX: text size
         private InputField _gameWindowHeight;
         private Checkbox _maxJournalFilesEnabled;
         private InputField _maxJournalFiles;
@@ -2420,6 +2421,12 @@ namespace ClassicUO.Game.UI.Gumps
 
             startY += _forceUnicodeJournal.Height + 2;
 
+            // IEX: text size for overhead text, journal and chat lines
+            Label iexLabel = AddLabel(rightArea, "Text size % (overhead text, journal, chat):", startX, startY);
+            startY += iexLabel.Height + 2;
+            _iexTextSize = AddHSlider(rightArea, IEX.IexText.Min, IEX.IexText.Max, IEX.IexText.Snap(_currentProfile.IexTextScale), startX + 40, startY, 200);
+            startY += _iexTextSize.Height + 10;
+
             Label text = AddLabel(rightArea, ResGumps.SpeechFont, startX, startY);
             startX += 40;
             startY += text.Height + 2;
@@ -3754,6 +3761,7 @@ namespace ClassicUO.Game.UI.Gumps
                 case 6: // fonts
                     _fontSelectorChat.SetSelectedFont(0);
                     _overrideAllFonts.IsChecked = false;
+                    _iexTextSize.Value = IEX.IexText.Min; // IEX: text size
                     _overrideAllFontsIsUnicodeCheckbox.SelectedIndex = 1;
 
                     break;
@@ -4184,6 +4192,17 @@ namespace ClassicUO.Game.UI.Gumps
 
             // fonts
             _currentProfile.ForceUnicodeJournal = _forceUnicodeJournal.IsChecked;
+
+            // IEX: text size
+            int iexTextSize = IEX.IexText.Snap(_iexTextSize.Value);
+            if (_currentProfile.IexTextScale != iexTextSize)
+            {
+                _currentProfile.IexTextScale = iexTextSize;
+                foreach (JournalGump journal in UIManager.Gumps.OfType<JournalGump>())
+                {
+                    journal.IexReload();
+                }
+            }
             byte _fontValue = _fontSelectorChat.GetSelectedFont();
             _currentProfile.OverrideAllFonts = _overrideAllFonts.IsChecked;
             _currentProfile.OverrideAllFontsIsUnicode = _overrideAllFontsIsUnicodeCheckbox.SelectedIndex == 1;

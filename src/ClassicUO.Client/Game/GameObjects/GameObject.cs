@@ -219,9 +219,9 @@ namespace ClassicUO.Game.GameObjects
                     }
 
                     last.OffsetY = offY;
-                    offY += last.RenderedText.Height;
+                    offY += IEX.IexText.Height(last.RenderedText); // IEX: text size
 
-                    last.RealScreenPosition.X = p.X - (last.RenderedText.Width >> 1);
+                    last.RealScreenPosition.X = p.X - (IEX.IexText.Width(last.RenderedText) >> 1); // IEX: text size
                     last.RealScreenPosition.Y = p.Y - offY;
                 }
             }
@@ -260,7 +260,7 @@ namespace ClassicUO.Game.GameObjects
                 }
 
                 int startX = item.RealScreenPosition.X;
-                int endX = startX + item.RenderedText.Width;
+                int endX = startX + IEX.IexText.Width(item.RenderedText); // IEX: text size
 
                 if (startX < topLeftGameWorldX)
                 {
@@ -273,7 +273,7 @@ namespace ClassicUO.Game.GameObjects
                 }
 
                 int startY = item.RealScreenPosition.Y;
-                int endY = startY + item.RenderedText.Height;
+                int endY = startY + IEX.IexText.Height(item.RenderedText); // IEX: text size
 
                 if (startY < topLeftGameWorldY)
                 {

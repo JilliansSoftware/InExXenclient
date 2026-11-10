@@ -22,7 +22,11 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 - [x] 3e. Journal keeps 500 lines; system/object/client messages shown
 - [x] 4. Razor starting profile: reagent and bandage counters in the title bar (installer only, never overwritten by updates)
 - [x] 5. "Save current settings as defaults for new users" mentioned in release notes
-## C. Shard panels
-## D. Atmosphere
+## C. Shard panels - skipped for now (2026-11-09)
+## D. Style
+- [x] Icon from the UO logo (exe, game window, installer)
+- [x] Text size slider (Options > Fonts, 100-200%): overhead text, journal, chat lines. Gumps stay on the zoom slider.
+- [ ] Dark UI toggle (darken gump backgrounds, lighten dark text) - proposed
+- Fonts: keep UO defaults (decided 2026-11-09)
 ## E. Keep-out list
 (C-E not reviewed yet)

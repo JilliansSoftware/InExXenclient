@@ -564,7 +564,7 @@ namespace ClassicUO.Game.UI.Gumps
         public override bool AddToRenderLists(RenderLists renderLists, int x, int y, ref float layerDepthRef)
         {
             int yy = TextBoxControl.Y + y - 20;
-            var scale = 1f;
+            var scale = IEX.IexText.Scale; // IEX: text size
 
             LinkedListNode<ChatLineTime> last = _textEntries.Last;
 
@@ -582,7 +582,7 @@ namespace ClassicUO.Game.UI.Gumps
                     }
                     else
                     {
-                        yy -= last.Value.TextHeight;
+                        yy -= IEX.IexText.Height(last.Value.TextHeight); // IEX: text size
 
                         if (yy >= y)
                         {
@@ -1084,7 +1084,7 @@ namespace ClassicUO.Game.UI.Gumps
                     font,
                     isunicode,
                     FontStyle.BlackBorder,
-                    maxWidth: 320
+                    maxWidth: (int)(320 / IEX.IexText.Scale) // IEX: text size
                 );
                 _createdTime = Time.Ticks + Constants.TIME_DISPLAY_SYSTEM_MESSAGE_TEXT;
             }

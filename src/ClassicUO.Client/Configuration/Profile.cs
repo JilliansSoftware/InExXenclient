@@ -261,6 +261,7 @@ namespace ClassicUO.Configuration
 
         public bool OverrideAllFonts { get; set; }
         public bool OverrideAllFontsIsUnicode { get; set; } = true;
+        public int IexTextScale { get; set; } = 100; // IEX: "Text size" percent, see IEX/IexText.cs
 
         public bool SallosEasyGrab { get; set; }
 

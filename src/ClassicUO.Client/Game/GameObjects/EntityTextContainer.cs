@@ -128,9 +128,9 @@ namespace ClassicUO.Game.GameObjects
                 //    c.Alpha = 1f - delta / 250;
                 else if (c.RenderedText != null)
                 {
-                    if (_rectangle.Width < c.RenderedText.Width)
+                    if (_rectangle.Width < IEX.IexText.Width(c.RenderedText)) // IEX: text size
                     {
-                        _rectangle.Width = c.RenderedText.Width;
+                        _rectangle.Width = IEX.IexText.Width(c.RenderedText); // IEX: text size
                     }
                 }
             }
@@ -220,11 +220,11 @@ namespace ClassicUO.Game.GameObjects
                     continue;
                 }
 
-                item.X = p.X - (item.RenderedText.Width >> 1);
-                item.Y = p.Y - offY - item.RenderedText.Height - item.OffsetY;
+                item.X = p.X - (IEX.IexText.Width(item.RenderedText) >> 1); // IEX: text size
+                item.Y = p.Y - offY - IEX.IexText.Height(item.RenderedText) - item.OffsetY; // IEX: text size
 
-                item.RenderedText.Draw(batcher, item.X, item.Y, layerDepth, item.Alpha / 255f);
-                offY += item.RenderedText.Height;
+                item.RenderedText.Draw(batcher, item.X, item.Y, layerDepth, item.Alpha / 255f, 0, IEX.IexText.Scale); // IEX: text size
+                offY += IEX.IexText.Height(item.RenderedText); // IEX: text size
             }
         }
 
