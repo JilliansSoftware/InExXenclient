@@ -150,8 +150,80 @@ namespace ClassicUO.Game.UI.Controls
             base.Dispose();
         }
 
+        // IEX: dark windows - the scroll becomes a black stone frame with a gold title plate
+        private ResizePic _iexFrame, _iexPlate;
+        private Control _iexTitle;
+
+        private void IexDark()
+        {
+            bool dark = IEX.IexDarkUi.Active;
+
+            if (dark && _iexFrame == null)
+            {
+                Insert(0, _iexFrame = new ResizePic(0x0E10) { AcceptMouseInput = false });
+                string title = IEX.IexDarkUi.ScrollTitle(_gumplingTitleGumpID);
+
+                if (title != null)
+                {
+                    _iexTitle = IEX.IexDarkUi.TitlePic(title);
+
+                    if (_iexTitle != null)
+                    {
+                        _iexPlate = new ResizePic(0x0BB8) { AcceptMouseInput = false, Width = _iexTitle.Width + 40, Height = _iexTitle.Height + 10 };
+                        Add(_iexPlate);
+                        Add(_iexTitle);
+                    }
+                }
+            }
+
+            if (_iexFrame == null)
+            {
+                return;
+            }
+
+            _iexFrame.IsVisible = dark;
+            _gumpTop.IsVisible = _gumpMiddle.IsVisible = _gumpRight.IsVisible = _gumpBottom.IsVisible = !dark;
+
+            if (_iexTitle != null)
+            {
+                _iexTitle.IsVisible = _iexPlate.IsVisible = dark;
+
+                if (_gumplingTitle != null)
+                {
+                    _gumplingTitle.IsVisible = !dark;
+                }
+            }
+
+            if (dark)
+            {
+                IEX.IexDarkUi.KeepReadable(RootParent);
+                // Cover everything the parchment covered (its top and bottom rolls are wider than
+                // the middle, and windows put text out there), plus a little at the bottom where
+                // the roll used to sit under the last line.
+                int left = System.Math.Min(0, System.Math.Min(_gumpMiddle.X, _gumpBottom.X));
+                int right = System.Math.Max(_gumpTop.Width, System.Math.Max(_gumpMiddle.X + _gumpMiddle.Width, _gumpBottom.X + _gumpBottom.Width));
+                _iexFrame.X = left;
+                _iexFrame.Y = 0;
+                _iexFrame.Width = right - left;
+                _iexFrame.Height = _gumplingBottomY + _gumpBottom.Height + 12;
+
+                if (_iexPlate != null)
+                {
+                    _iexPlate.X = _iexFrame.X + (_iexFrame.Width - _iexPlate.Width) / 2;
+                    _iexPlate.Y = 8;
+                    _iexTitle.X = _iexPlate.X + 20;
+                    _iexTitle.Y = _iexPlate.Y + 5;
+                }
+            }
+        }
+
         public override bool Contains(int x, int y)
         {
+            if (_iexFrame != null && _iexFrame.IsVisible) // IEX: dark windows
+            {
+                return x >= _iexFrame.X && x < _iexFrame.X + _iexFrame.Width && y >= 0 && y < _iexFrame.Height;
+            }
+
             x += ScreenCoordinateX;
             y += ScreenCoordinateY;
 
@@ -250,6 +322,8 @@ namespace ClassicUO.Game.UI.Controls
                 _gumplingTitle.Y = (_gumpTop.Height - _gumplingTitle.Height) >> 1;
                 _gumplingTitle.WantUpdateSize = true;
             }
+
+            IexDark(); // IEX: dark windows
 
             WantUpdateSize = true;
             Parent?.OnPageChanged();

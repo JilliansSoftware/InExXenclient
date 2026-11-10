@@ -56,6 +56,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- IEX: dark windows art (built by branding/art/make_paperdoll.py) -->
+    <EmbeddedResource Include="IEX\Art\*.rgba.gz" LogicalName="IEX.Art.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Resources\ResErrorMessages.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>ResErrorMessages.Designer.cs</LastGenOutput>

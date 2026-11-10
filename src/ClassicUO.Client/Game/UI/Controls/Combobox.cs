@@ -56,13 +56,13 @@ namespace ClassicUO.Game.UI.Controls
 
             bool unicode = isAsianLang;
             byte font1 = (byte)(isAsianLang ? 1 : _font);
+            bool dark = IEX.IexDarkUi.Active; // IEX: light Unicode text on the dark box
 
             Add
             (
-                _label = new Label(initialText, unicode, 0x0453, font: font1)
-                {
-                    X = 2, Y = 5
-                }
+                _label = dark
+                    ? new Label(initialText, true, IEX.IexDarkUi.ParchmentHue, font: 1, style: FontStyle.BlackBorder) { X = 4, Y = 4 }
+                    : new Label(initialText, unicode, 0x0453, font: font1) { X = 2, Y = 5 }
             );
 
             if (showArrow)
@@ -207,14 +207,17 @@ namespace ClassicUO.Game.UI.Controls
                         item = string.Empty;
                     }
 
+                    bool dark = IEX.IexDarkUi.Active; // IEX: parchment, gold under the mouse
+
                     HoveredLabel label = new HoveredLabel
                     (
                         item,
-                        unicode,
-                        0x0453,
-                        0x0453,
-                        0x0453,
-                        font: font1
+                        dark || unicode,
+                        dark ? IEX.IexDarkUi.ParchmentHue : (ushort) 0x0453,
+                        dark ? IEX.IexDarkUi.GoldHue : (ushort) 0x0453,
+                        dark ? IEX.IexDarkUi.GoldHue : (ushort) 0x0453,
+                        font: dark ? (byte) 1 : font1,
+                        style: dark ? FontStyle.BlackBorder : FontStyle.None
                     )
                     {
                         X = 2,

@@ -540,6 +540,10 @@ namespace ClassicUO.Game.UI.Gumps
 
     internal class StatusGumpModern : StatusGumpBase
     {
+        // IEX: on the dark status art the current/max dividers are dim gold, numbers parchment
+        // and the name gold.
+        private static uint IexLineColor => ClassicUO.IEX.IexDarkUi.Active ? 0xFF105888u : 0xFF383838u;
+
         public StatusGumpModern(World world) : base(world)
         {
             Point p = Point.Zero;
@@ -809,7 +813,7 @@ namespace ClassicUO.Game.UI.Gumps
                         138,
                         Math.Abs(xOffset - 185),
                         1,
-                        0xFF383838
+                        IexLineColor
                     )
                 );
 
@@ -821,7 +825,7 @@ namespace ClassicUO.Game.UI.Gumps
                         110,
                         Math.Abs(xOffset - 185),
                         1,
-                        0xFF383838
+                        IexLineColor
                     )
                 );
 
@@ -833,7 +837,7 @@ namespace ClassicUO.Game.UI.Gumps
                         82,
                         Math.Abs(xOffset - 185),
                         1,
-                        0xFF383838
+                        IexLineColor
                     )
                 );
 
@@ -925,7 +929,7 @@ namespace ClassicUO.Game.UI.Gumps
                         138,
                         Math.Abs(lineX - (Client.Game.UO.FileManager.Gumps.UseUOPGumps ? 270 : 250)),
                         1,
-                        0xFF383838
+                        IexLineColor
                     )
                 );
 
@@ -1329,18 +1333,26 @@ namespace ClassicUO.Game.UI.Gumps
             TEXT_ALIGN_TYPE alignment = TEXT_ALIGN_TYPE.TS_LEFT
         )
         {
+            if (ClassicUO.IEX.IexDarkUi.Active && hue == 0x0386) // IEX: readable on the dark art
+            {
+                hue = stat == MobileStats.Name ? ClassicUO.IEX.IexDarkUi.GoldHue : ClassicUO.IEX.IexDarkUi.ParchmentHue;
+            }
+
+            bool dark = ClassicUO.IEX.IexDarkUi.Active; // IEX: crisp Unicode with a black edge
+
             Label label = new Label
             (
                 text,
-                false,
+                dark,
                 hue,
                 maxWidth,
                 align: alignment,
-                font: 1
+                font: (byte) (dark ? 0 : 1), // IEX: Unicode font 0 on the dark art
+                style: dark ? FontStyle.BlackBorder : FontStyle.None
             )
             {
                 X = x,
-                Y = y
+                Y = dark ? y - 3 : y
             };
 
             _labels[(int) stat] = label;

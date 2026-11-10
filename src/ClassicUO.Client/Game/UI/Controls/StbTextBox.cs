@@ -285,6 +285,7 @@ namespace ClassicUO.Game.UI.Controls
         protected bool _is_writing;
         protected bool _leftWasDown, _fromServer;
         protected RenderedText _rendererText, _rendererCaret;
+        internal RenderedText IexText => _rendererText; // IEX: dark windows recolor
 
         public event EventHandler<BeforeTextChangedEventArgs> BeforeTextChanged;
         public event EventHandler TextChanged;

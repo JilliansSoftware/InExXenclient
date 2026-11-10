@@ -10,6 +10,7 @@ namespace ClassicUO.Game.UI.Controls
     internal class Label : Control
     {
         private readonly RenderedText _gText;
+        internal RenderedText IexText => _gText; // IEX: dark windows recolor
 
         public Label
         (

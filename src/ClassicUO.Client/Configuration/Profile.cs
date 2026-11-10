@@ -262,6 +262,8 @@ namespace ClassicUO.Configuration
         public bool OverrideAllFonts { get; set; }
         public bool OverrideAllFontsIsUnicode { get; set; } = true;
         public int IexTextScale { get; set; } = 100; // IEX: "Text size" percent, see IEX/IexText.cs
+        public bool IexDarkUi { get; set; } // IEX: dark windows, see IEX/IexDarkUi.cs
+        public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with dark windows), IEX/IexSkillsGump.cs
 
         public bool SallosEasyGrab { get; set; }
 
@@ -593,7 +595,11 @@ namespace ClassicUO.Configuration
                                     break;
 
                                 case GumpType.SkillMenu:
-                                    if (StandardSkillsGump)
+                                    if (IEX.IexSkillsGump.Use) // IEX: the shard's skills window
+                                    {
+                                        gump = new IEX.IexSkillsGump(world);
+                                    }
+                                    else if (StandardSkillsGump)
                                     {
                                         gump = new StandardSkillsGump(world);
                                     }

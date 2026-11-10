@@ -82,6 +82,8 @@ namespace ClassicUO.Game.UI.Controls
             CanMove = true;
         }
 
+        internal RenderedText IexText => _gameText; // IEX: dark windows recolor
+
         public bool HasScrollbar { get; }
 
         public bool HasBackground { get; }

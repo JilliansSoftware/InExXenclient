@@ -1,0 +1,6 @@
+# Script outputs: the shipped copies live in src/ClassicUO.Client/IEX/Art/
+*.rgba.gz
+*-raw.png
+status-check.png
+statusbar-pick.png
+statusbar-noto.png

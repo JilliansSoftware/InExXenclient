@@ -1294,6 +1294,24 @@ namespace ClassicUO.Game.UI.Gumps
         {
         }
 
+        // IEX: with dark windows on, another mobile's bar is drawn from art already coloured
+        // by notoriety (untinted), since tinting the stock way would colour the gold trim too.
+        private static ushort IexOtherBar(Mobile mobile, ref ushort barColor)
+        {
+            if (ClassicUO.IEX.IexDarkUi.Active && barColor != 0 && mobile != null)
+            {
+                ushort coloured = ClassicUO.IEX.IexDarkArt.NotorietyBar(mobile.NotorietyFlag);
+
+                if (coloured != 0)
+                {
+                    barColor = 0;
+                    return coloured;
+                }
+            }
+
+            return 0x0804;
+        }
+
         public HealthBarGump(World world, uint serial) : base(world,serial)
         {
         }
@@ -1518,7 +1536,7 @@ namespace ClassicUO.Game.UI.Gumps
 
                     ushort barColor = entity == null || entity == World.Player || mobile == null || mobile.NotorietyFlag == NotorietyFlag.Criminal || mobile.NotorietyFlag == NotorietyFlag.Gray ? (ushort) 0 : Notoriety.GetHue(mobile.NotorietyFlag);
 
-                    Add(_background = new GumpPic(0, 0, 0x0804, barColor) { ContainsByBounds = true });
+                    Add(_background = new GumpPic(0, 0, IexOtherBar(mobile, ref barColor), barColor) { ContainsByBounds = true });
                     Add(_hpLineRed = new GumpPic(34, 38, LINE_RED, hitsColor));
 
                     Add
@@ -1773,6 +1791,16 @@ namespace ClassicUO.Game.UI.Gumps
                 }
 
                 ushort barColor = entity == World.Player || mobile == null || mobile.NotorietyFlag == NotorietyFlag.Criminal || mobile.NotorietyFlag == NotorietyFlag.Gray ? (ushort) 0 : Notoriety.GetHue(mobile.NotorietyFlag);
+
+                if (!inparty && entity != World.Player) // IEX: dark windows use pre-coloured bars
+                {
+                    ushort graphic = IexOtherBar(mobile, ref barColor);
+
+                    if (_background.Graphic != graphic)
+                    {
+                        _background.Graphic = graphic;
+                    }
+                }
 
                 if (_background.Hue != barColor)
                 {

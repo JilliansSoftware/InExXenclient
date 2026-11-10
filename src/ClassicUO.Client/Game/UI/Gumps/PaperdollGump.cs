@@ -312,7 +312,11 @@ namespace ClassicUO.Game.UI.Gumps
             }
 
             // Name and title
-            _titleLabel = new Label("", false, 0x0386, 185, font: 1) { X = 39, Y = 262 };
+            // IEX: on the dark frame the name is crisp Unicode gold with a black edge, inside the
+            // taller three-line nameplate with a margin under its top rim.
+            _titleLabel = IEX.IexDarkUi.Active
+                ? new Label("", true, IEX.IexDarkUi.GoldHue, 192, font: 0, style: FontStyle.BlackBorder) { X = 36, Y = 268 }
+                : new Label("", false, 0x0386, 185, font: 1) { X = 39, Y = 262 };
 
             Add(_titleLabel);
 
@@ -327,9 +331,33 @@ namespace ClassicUO.Game.UI.Gumps
             }
         }
 
+        // IEX: what the server sent (the label may hold a shortened copy)
+        private string _titleSource;
+
+        // IEX: three lines of Unicode font 0 fit the dark nameplate (a fourth starts near 65px)
+        private const int IEX_TITLE_MAX_HEIGHT = 56;
+
         public void UpdateTitle(string text)
         {
+            _titleSource = text;
             _titleLabel.Text = text;
+
+            // IEX: a title too long for the dark nameplate (only staff-set custom titles get
+            // there) is cut at a word with "..." on the third line.
+            if (IEX.IexDarkUi.Active && !string.IsNullOrEmpty(text) && _titleLabel.Height > IEX_TITLE_MAX_HEIGHT)
+            {
+                string[] words = text.Split(' ');
+
+                for (int n = words.Length - 1; n > 0; n--)
+                {
+                    _titleLabel.Text = string.Join(" ", words, 0, n) + " ...";
+
+                    if (_titleLabel.Height <= IEX_TITLE_MAX_HEIGHT)
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         private void VirtueMenu_MouseDoubleClickEvent(object sender, MouseDoubleClickEventArgs args)
@@ -551,7 +579,7 @@ namespace ClassicUO.Game.UI.Gumps
         {
             Mobile mobile = World.Mobiles.Get(LocalSerial);
 
-            if (mobile != null && mobile.Title != _titleLabel.Text)
+            if (mobile != null && mobile.Title != _titleSource) // IEX: compare with what was sent
             {
                 UpdateTitle(mobile.Title);
             }

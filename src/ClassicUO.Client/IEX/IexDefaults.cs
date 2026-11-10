@@ -27,6 +27,7 @@ namespace ClassicUO.IEX
                 ShowJournalSystem = true,
                 ShowJournalObjects = true,
                 ShowJournalClient = true,
+                IexDarkUi = true, // the shard's black stone and gold windows
             };
         }
 

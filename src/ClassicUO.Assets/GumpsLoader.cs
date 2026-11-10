@@ -29,6 +29,9 @@ namespace ClassicUO.Assets
 
         private UOFile _file;
 
+        // IEX: art drawn by the client itself (dark windows), by gump number; wins over everything.
+        public readonly Dictionary<int, (uint[] Pixels, int Width, int Height)> IexOverrides = new Dictionary<int, (uint[] Pixels, int Width, int Height)>();
+
         public GumpsLoader(UOFileManager fileManager) : base(fileManager) { }
 
 
@@ -205,6 +208,11 @@ namespace ClassicUO.Assets
 
         public GumpInfo GetGump(uint index)
         {
+            if (IexOverrides.Count > 0 && IexOverrides.TryGetValue((int)index, out var iex)) // IEX: dark windows
+            {
+                return new GumpInfo { Pixels = iex.Pixels, Width = iex.Width, Height = iex.Height };
+            }
+
             // Ours first, so a file can correct a gump the archive already has and not only fill
             // a number it lacks.
             if (_ours.Count > 0 && _ours.TryGetValue((int)index, out string ours))

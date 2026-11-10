@@ -1957,8 +1957,12 @@ namespace ClassicUO.Network
             {
                 StandardSkillsGump standard = null;
                 SkillGumpAdvanced advanced = null;
+                bool iexSkills = IEX.IexSkillsGump.Use; // IEX: the shard's skills window
 
-                if (ProfileManager.CurrentProfile.StandardSkillsGump)
+                if (iexSkills)
+                {
+                }
+                else if (ProfileManager.CurrentProfile.StandardSkillsGump)
                 {
                     standard = UIManager.GetGump<StandardSkillsGump>();
                 }
@@ -1972,7 +1976,14 @@ namespace ClassicUO.Network
                     world.SkillsRequested = false;
 
                     // TODO: make a base class for this gump
-                    if (ProfileManager.CurrentProfile.StandardSkillsGump)
+                    if (iexSkills)
+                    {
+                        if (UIManager.GetGump<IEX.IexSkillsGump>() == null)
+                        {
+                            UIManager.Add(new IEX.IexSkillsGump(world) { X = 100, Y = 100 });
+                        }
+                    }
+                    else if (ProfileManager.CurrentProfile.StandardSkillsGump)
                     {
                         if (standard == null)
                         {
@@ -2069,6 +2080,11 @@ namespace ClassicUO.Network
                     {
                         break;
                     }
+                }
+
+                if (iexSkills)
+                {
+                    UIManager.GetGump<IEX.IexSkillsGump>()?.RefreshValues();
                 }
             }
         }
@@ -7116,6 +7132,10 @@ namespace ClassicUO.Network
             if (mustBeAdded)
             {
                 UIManager.Add(gump);
+            }
+            else
+            {
+                IEX.IexDarkUi.FixText(gump); // IEX: readable text on dark windows (Add does this too)
             }
 
             gump.Update();

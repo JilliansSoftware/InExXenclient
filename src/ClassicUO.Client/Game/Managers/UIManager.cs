@@ -388,6 +388,8 @@ namespace ClassicUO.Game.Managers
         {
             if (!gump.IsDisposed)
             {
+                IEX.IexDarkUi.FixText(gump); // IEX: readable text on dark windows
+
                 if (front)
                 {
                     Gumps.AddFirst(gump);

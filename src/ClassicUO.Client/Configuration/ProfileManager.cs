@@ -49,6 +49,7 @@ namespace ClassicUO.Configuration
             CurrentProfile.CharacterName = charactername;
 
             ValidateFields(CurrentProfile);
+            IEX.IexDarkUi.Apply(); // IEX: dark windows follow the profile
         }
 
         public static void SetProfileAsDefault(Profile profile)
@@ -98,6 +99,7 @@ namespace ClassicUO.Configuration
         {
             GlobalProfile = null;
             CurrentProfile = null;
+            IEX.IexDarkUi.Apply(); // IEX: back to stock art at the login screen
         }
 
         internal static void Save(Profile profile, string path, string filename = "profile.json")

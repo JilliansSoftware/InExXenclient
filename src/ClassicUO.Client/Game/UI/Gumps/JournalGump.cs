@@ -64,6 +64,8 @@ namespace ClassicUO.Game.UI.Gumps
                 }
             );
 
+            darkMode.IsVisible = !IEX.IexDarkUi.Active; // IEX: dark windows already make the journal dark
+
             Hue = (ushort) (ProfileManager.CurrentProfile.JournalDarkMode ? DARK_MODE_JOURNAL_HUE : 0);
 
             darkMode.ValueChanged += (sender, e) =>
@@ -536,7 +538,7 @@ namespace ClassicUO.Game.UI.Gumps
                 RenderedText rtext = RenderedText.Create
                 (
                     text,
-                    hue,
+                    IEX.IexDarkUi.ReadableHue(hue), // IEX: dark windows
                     (byte) font,
                     isUnicode,
                     FontStyle.Indention | FontStyle.BlackBorder,

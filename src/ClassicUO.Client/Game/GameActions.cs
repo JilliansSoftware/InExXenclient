@@ -133,6 +133,13 @@ namespace ClassicUO.Game
 
         public static void OpenSkills(World world)
         {
+            if (IEX.IexSkillsGump.Use && UIManager.GetGump<IEX.IexSkillsGump>() is IEX.IexSkillsGump iex) // IEX
+            {
+                iex.BringOnTop();
+
+                return;
+            }
+
             StandardSkillsGump skillsGump = UIManager.GetGump<StandardSkillsGump>();
 
             if (skillsGump != null && skillsGump.IsMinimized)

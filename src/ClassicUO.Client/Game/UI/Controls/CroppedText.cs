@@ -9,6 +9,7 @@ namespace ClassicUO.Game.UI.Controls
     internal class CroppedText : Control
     {
         private readonly RenderedText _gameText;
+        internal RenderedText IexText => _gameText; // IEX: dark windows recolor
 
         public CroppedText(string text, ushort hue, int maxWidth = 0)
         {

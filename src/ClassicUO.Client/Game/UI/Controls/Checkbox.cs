@@ -14,6 +14,7 @@ namespace ClassicUO.Game.UI.Controls
     {
         private bool _isChecked;
         private readonly RenderedText _text;
+        internal RenderedText IexText => _text; // IEX: dark windows recolor
         private ushort _inactive,
             _active;
 

@@ -768,7 +768,14 @@ namespace ClassicUO.Game.Managers
 
                                 case MacroSubType.Skills:
 
-                                    if (ProfileManager.CurrentProfile.StandardSkillsGump)
+                                    if (IEX.IexSkillsGump.Use) // IEX: the shard's skills window
+                                    {
+                                        if (macro.Code == MacroType.Close)
+                                        {
+                                            UIManager.GetGump<IEX.IexSkillsGump>()?.Dispose();
+                                        }
+                                    }
+                                    else if (ProfileManager.CurrentProfile.StandardSkillsGump)
                                     {
                                         StandardSkillsGump skillgump = UIManager.GetGump<StandardSkillsGump>();
 

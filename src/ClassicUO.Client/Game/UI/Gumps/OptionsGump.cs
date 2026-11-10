@@ -63,6 +63,8 @@ namespace ClassicUO.Game.UI.Gumps
         private FontSelector _fontSelectorChat;
         private Checkbox _forceUnicodeJournal;
         private HSliderBar _iexTextSize; // IEX: text size
+        private Checkbox _iexDarkUi; // IEX: dark windows
+        private Checkbox _iexModernSkills; // IEX: skills window
         private InputField _gameWindowHeight;
         private Checkbox _maxJournalFilesEnabled;
         private InputField _maxJournalFiles;
@@ -2427,6 +2429,12 @@ namespace ClassicUO.Game.UI.Gumps
             _iexTextSize = AddHSlider(rightArea, IEX.IexText.Min, IEX.IexText.Max, IEX.IexText.Snap(_currentProfile.IexTextScale), startX + 40, startY, 200);
             startY += _iexTextSize.Height + 10;
 
+            // IEX: dark windows
+            _iexDarkUi = AddCheckBox(rightArea, "Dark windows (black stone, gold trim)", _currentProfile.IexDarkUi, startX, startY);
+            startY += _iexDarkUi.Height + 2;
+            _iexModernSkills = AddCheckBox(rightArea, "Modern skills window (with dark windows)", _currentProfile.IexModernSkills, startX, startY);
+            startY += _iexModernSkills.Height + 10;
+
             Label text = AddLabel(rightArea, ResGumps.SpeechFont, startX, startY);
             startX += 40;
             startY += text.Height + 2;
@@ -3762,6 +3770,8 @@ namespace ClassicUO.Game.UI.Gumps
                     _fontSelectorChat.SetSelectedFont(0);
                     _overrideAllFonts.IsChecked = false;
                     _iexTextSize.Value = IEX.IexText.Min; // IEX: text size
+                    _iexDarkUi.IsChecked = false; // IEX: dark windows
+                    _iexModernSkills.IsChecked = true;
                     _overrideAllFontsIsUnicodeCheckbox.SelectedIndex = 1;
 
                     break;
@@ -4203,6 +4213,15 @@ namespace ClassicUO.Game.UI.Gumps
                     journal.IexReload();
                 }
             }
+
+            // IEX: dark windows (windows already open keep their text color until reopened)
+            if (_currentProfile.IexDarkUi != _iexDarkUi.IsChecked)
+            {
+                _currentProfile.IexDarkUi = _iexDarkUi.IsChecked;
+                IEX.IexDarkUi.Apply();
+            }
+
+            _currentProfile.IexModernSkills = _iexModernSkills.IsChecked; // takes effect next time the skills window opens
             byte _fontValue = _fontSelectorChat.GetSelectedFont();
             _currentProfile.OverrideAllFonts = _overrideAllFonts.IsChecked;
             _currentProfile.OverrideAllFontsIsUnicode = _overrideAllFontsIsUnicodeCheckbox.SelectedIndex == 1;

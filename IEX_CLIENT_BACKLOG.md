@@ -26,7 +26,10 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 ## D. Style
 - [x] Icon from the UO logo (exe, game window, installer)
 - [x] Text size slider (Options > Fonts, 100-200%): overhead text, journal, chat lines. Gumps stay on the zoom slider.
-- [ ] Dark UI toggle (darken gump backgrounds, lighten dark text) - proposed
+- [x] Dark windows (Options > Fonts, on for new characters): 20 stock window backgrounds redrawn in code as black stone + gold trim (`IEX/IexDarkArt.cs`), dark text in those windows turns parchment (`IEX/IexDarkUi.cs`). Built and art checked offline; not yet tried in game. Title font (ASCII 4) only applies where a window has a title.
+  Also: gold-framed dark buttons (OKAY/CANCEL/APPLY/DEFAULT + paperdoll), scroll bars, checkboxes, dark journal/skills scrolls with gold title plates, gold ASCII 4 titles on server windows, paperdoll frame from Midjourney art (`branding/art/make_paperdoll.py` -> `IEX/Art/*.rgba.gz`).
+- [x] Skills window redesign (`IEX/IexSkillsGump.cs`, Options > Fonts "Modern skills window", needs dark windows): resizable, search, Real/Base/Cap, groups sidebar (dropdown when narrow), use + lock per row, drag to group / out for a skill button. No bars or gain counts on purpose. Not yet tried in game.
+- [x] Dark status window and bars (with dark windows): status 0x2A6C, own bar 0x0803/0x0807 (war = red copy), others' bar 0x0804 grey plus pre-coloured copies per notoriety (0xFE40-0xFE44, drawn untinted so the gold stays gold). Art from Midjourney (`branding/art/status-mj.webp`, `statusbar-mj.webp`) fitted by `branding/art/make_status.py`. Status numbers parchment, name gold. Art checked offline; not yet tried in game. Only for MUL gump files (UOP status art has another layout).
 - Fonts: keep UO defaults (decided 2026-11-09)
 ## E. Keep-out list
 (C-E not reviewed yet)
