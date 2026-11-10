@@ -7,7 +7,7 @@
     <LangVersion>Preview</LangVersion>
     <AssemblyName>ClassicUO</AssemblyName>
     <RootNamespace>ClassicUO</RootNamespace>
-    <ApplicationIcon>cuoicon.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\..\branding\inexxen.ico</ApplicationIcon> <!-- IEX: shard icon -->
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 

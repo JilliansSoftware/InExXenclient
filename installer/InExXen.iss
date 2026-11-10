@@ -24,6 +24,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
 OutputBaseFilename=InExXen-Setup
+SetupIconFile=..\branding\inexxen.ico
 UninstallDisplayIcon={app}\ClassicUO.exe
 Compression=lzma2/ultra64
 SolidCompression=yes
