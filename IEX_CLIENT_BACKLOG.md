@@ -33,3 +33,7 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 - Fonts: keep UO defaults (decided 2026-11-09)
 ## E. Keep-out list
 (C-E not reviewed yet)
+## F. Graphics
+- [x] Enhanced lighting, phase 1 (Options > Video, "Enhanced lighting", on for new characters): tinted darkness (warm at dusk, blue at night, colder underground; same brightness as stock), warm fire light with a slight flicker, softened light edges and glow. `IEX/IexLighting.cs`, `ClassicUO.Renderer/IEX/IexLightingPass.cs`, `shaders/IexLighting.fx` (recompile with `compile_shaders.bat`); hooks in `RenderTargets.cs`, `GameScene.cs`, `LightColors.cs`. Falls back to stock lighting if the shader does not load. Tried in game 2026-11-10.
+- [ ] Phase 2 atmosphere (day/night grade, weather, dungeon vignette, water) - proposed 2026-11-10
+- [ ] Phase 3 polish (soft shadows, spell lights, sharp scaling, CRT filter) - proposed 2026-11-10

@@ -26,6 +26,9 @@ namespace ClassicUO.Renderer
         public RenderTarget2D LightRenderTarget { get => _lightRenderTarget; }
         public RenderTarget2D WorldRenderTarget { get => _worldRenderTarget; }
 
+        // IEX: enhanced lighting (IEX/IexLightingPass.cs); the game scene asks for it each frame
+        public IEX.IexLightingPass IexLighting { get; } = new IEX.IexLightingPass();
+
         public void SetLightsConfiguration(Func<BlendState> lightsBlendState, Func<Vector3> lightsHue)
         {
             _lightsBlendState = lightsBlendState;
@@ -93,6 +96,10 @@ namespace ClassicUO.Renderer
 
         public void Draw(UltimaBatcher2D batcher)
         {
+            // IEX: enhanced lighting blurs the light map before anything is drawn to the screen
+            bool iexLighting = IexLighting.Requested && IexLighting.Prepare(batcher, LightRenderTarget);
+            IexLighting.Requested = false;
+
             // draw world
             Vector3 fullAlphaNoColor = Vector3.UnitZ;
 
@@ -113,26 +120,37 @@ namespace ClassicUO.Renderer
                 0f
             );
 
-            batcher.SetSampler(_defaultSamplerState);
+            if (iexLighting)
+            {
+                // IEX: the world and its light in one shader pass, in place of the two draws below
+                batcher.End();
+                IexLighting.Draw(batcher, WorldRenderTarget, LightRenderTarget, _gameWorldSceneOnScreen, _defaultSamplerState);
+                batcher.Begin();
+                batcher.SetSampler(_defaultSamplerState);
+            }
+            else
+            {
+                batcher.SetSampler(_defaultSamplerState);
 
-            batcher.Draw(
-                WorldRenderTarget,
-                _gameWorldSceneOnScreen,
-                fullAlphaNoColor,
-                0f
-            );
+                batcher.Draw(
+                    WorldRenderTarget,
+                    _gameWorldSceneOnScreen,
+                    fullAlphaNoColor,
+                    0f
+                );
 
-            // draw lights
-            batcher.SetBlendState(_lightsBlendState?.Invoke());
+                // draw lights
+                batcher.SetBlendState(_lightsBlendState?.Invoke());
 
-            batcher.Draw(
-                LightRenderTarget,
-                _gameWorldSceneOnScreen,
-                _lightsHue?.Invoke() ?? Vector3.Up,
-                0f
-            );
+                batcher.Draw(
+                    LightRenderTarget,
+                    _gameWorldSceneOnScreen,
+                    _lightsHue?.Invoke() ?? Vector3.Up,
+                    0f
+                );
 
-            batcher.SetBlendState(null);
+                batcher.SetBlendState(null);
+            }
 
             // Draw UI at original window size (render target is DPI-scaled but destination is not)
             batcher.Draw(

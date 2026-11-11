@@ -451,6 +451,7 @@ namespace ClassicUO.Game.Data
         {
             MakeDefaultShaders(count);
             BuildLightShaderFiles(false);
+            _shaderdata[IEX.IexLighting.WarmShader] = new LightShaderData(IEX.IexLighting.WarmRgb); // IEX: fire light
 
             byte[][] lightCurveTables = new byte[6][]
             {

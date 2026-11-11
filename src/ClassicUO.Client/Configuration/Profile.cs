@@ -264,6 +264,7 @@ namespace ClassicUO.Configuration
         public int IexTextScale { get; set; } = 100; // IEX: "Text size" percent, see IEX/IexText.cs
         public bool IexDarkUi { get; set; } // IEX: dark windows, see IEX/IexDarkUi.cs
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with dark windows), IEX/IexSkillsGump.cs
+        public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
 
         public bool SallosEasyGrab { get; set; }
 

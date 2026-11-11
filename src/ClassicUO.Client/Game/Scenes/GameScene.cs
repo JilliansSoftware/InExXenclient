@@ -534,6 +534,22 @@ namespace ClassicUO.Game.Scenes
                     return;
                 }
 
+                // IEX: enhanced lighting - plain lights burn warm, and fire flickers
+                light.IexSeed = 0;
+
+                if (IEX.IexLighting.On && !UseAltLights && ProfileManager.CurrentProfile.UseColoredLights)
+                {
+                    if (light.Color == 0)
+                    {
+                        light.Color = IEX.IexLighting.WarmShader;
+                    }
+
+                    if (!light.IsHue && IEX.IexLighting.IsFire(light.Color))
+                    {
+                        light.IexSeed = IEX.IexLighting.Seed(obj is Entity ent ? ent.Serial : 0, obj.X, obj.Y);
+                    }
+                }
+
                 if (light.Color != 0)
                 {
                     light.Color++;
@@ -1074,6 +1090,8 @@ namespace ClassicUO.Game.Scenes
             batcher.GraphicsDevice.SetRenderTarget(renderTargets.LightRenderTarget);
             batcher.GraphicsDevice.Clear(ClearOptions.Target, Color.Black, 0f, 0);
 
+            bool iexLighting = IEX.IexLighting.On && !UseAltLights && renderTargets.IexLighting.Available; // IEX
+
             if (!UseAltLights)
             {
                 float lightColor = _world.Light.IsometricLevel;
@@ -1089,10 +1107,24 @@ namespace ClassicUO.Game.Scenes
                     0f,
                     0
                 );
+
+                // IEX: enhanced lighting - the darkness takes a colour, and a shader lays it over the world
+                if (iexLighting)
+                {
+                    Vector3 ambient = IEX.IexLighting.Ambient(Math.Max(lightColor, 0f), _world.Light.Overall);
+                    batcher.GraphicsDevice.Clear(ClearOptions.Target, new Vector4(ambient, 1), 0f, 0);
+                    renderTargets.IexLighting.Ambient = ambient;
+                    renderTargets.IexLighting.Requested = true;
+                }
             }
 
             batcher.Begin(null, matrix);
             batcher.SetBlendState(BlendState.Additive);
+
+            if (iexLighting)
+            {
+                batcher.SetSampler(SamplerState.LinearClamp); // IEX: light sprites keep soft edges when zoomed
+            }
 
             Vector3 hue = Vector3.Zero;
 
@@ -1116,6 +1148,28 @@ namespace ClassicUO.Game.Scenes
                             : ShaderHueTranslator.SHADER_LIGHTS
                         : ShaderHueTranslator.SHADER_NONE;
 
+                if (iexLighting && l.IexSeed != 0)
+                {
+                    // IEX: fire light breathes a little, about its own centre
+                    IEX.IexLighting.Flicker(l.IexSeed, out float scale, out hue.Z);
+
+                    batcher.Draw(
+                        lightInfo.Texture,
+                        new Vector2(l.DrawX, l.DrawY),
+                        lightInfo.UV,
+                        hue,
+                        0f,
+                        new Vector2(lightInfo.UV.Width * 0.5f, lightInfo.UV.Height * 0.5f),
+                        scale,
+                        SpriteEffects.None,
+                        0f
+                    );
+
+                    hue.Z = 1f;
+
+                    continue;
+                }
+
                 batcher.Draw(
                     lightInfo.Texture,
                     new Vector2(
@@ -1129,6 +1183,11 @@ namespace ClassicUO.Game.Scenes
             }
 
             _lightCount = 0;
+
+            if (iexLighting)
+            {
+                batcher.SetSampler(null); // IEX
+            }
 
             batcher.SetBlendState(null);
             batcher.End();
@@ -1275,6 +1334,7 @@ namespace ClassicUO.Game.Scenes
             public bool IsHue;
             public int DrawX,
                 DrawY;
+            public ushort IexSeed; // IEX: flicker seed for fire light, 0 = steady
         }
     }
 }

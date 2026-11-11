@@ -65,6 +65,7 @@ namespace ClassicUO.Game.UI.Gumps
         private HSliderBar _iexTextSize; // IEX: text size
         private Checkbox _iexDarkUi; // IEX: dark windows
         private Checkbox _iexModernSkills; // IEX: skills window
+        private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private InputField _gameWindowHeight;
         private Checkbox _maxJournalFilesEnabled;
         private InputField _maxJournalFiles;
@@ -1866,6 +1867,19 @@ namespace ClassicUO.Game.UI.Gumps
                     null,
                     ResGumps.UseColoredLights,
                     _currentProfile.UseColoredLights,
+                    startX,
+                    startY
+                )
+            );
+
+            // IEX: enhanced lighting
+            section3.Add
+            (
+                _iexEnhancedLighting = AddCheckBox
+                (
+                    null,
+                    "Enhanced lighting (tinted nights, warm fire light, glow)",
+                    _currentProfile.IexEnhancedLighting,
                     startX,
                     startY
                 )
@@ -3742,6 +3756,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _lightLevelType.SelectedIndex = 0;
                     _useColoredLights.IsChecked = false;
                     _darkNights.IsChecked = false;
+                    _iexEnhancedLighting.IsChecked = false; // IEX: enhanced lighting
                     _enableShadows.IsChecked = true;
                     _enableShadowsStatics.IsChecked = true;
                     _terrainShadowLevel.Value = 15;
@@ -4184,6 +4199,7 @@ namespace ClassicUO.Game.UI.Gumps
 
             _currentProfile.UseColoredLights = _useColoredLights.IsChecked;
             _currentProfile.UseDarkNights = _darkNights.IsChecked;
+            _currentProfile.IexEnhancedLighting = _iexEnhancedLighting.IsChecked; // IEX: enhanced lighting
             _currentProfile.ShadowsEnabled = _enableShadows.IsChecked;
             _currentProfile.ShadowsStatics = _enableShadowsStatics.IsChecked;
             _currentProfile.TerrainShadowsLevel = _terrainShadowLevel.Value;
