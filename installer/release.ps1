@@ -1,6 +1,6 @@
 # Prepares (and optionally publishes) an auto-update release from installer\stage (run build.ps1 first).
-#   powershell -ExecutionPolicy Bypass -File installer\release.ps1 -Tag v1.1            # prepare only
-#   powershell -ExecutionPolicy Bypass -File installer\release.ps1 -Tag v1.1 -Publish   # create the GitHub release
+#   powershell -ExecutionPolicy Bypass -File installer\release.ps1 -Tag v1.2            # prepare only
+#   powershell -ExecutionPolicy Bypass -File installer\release.ps1 -Tag v1.2 -Publish   # create the GitHub release
 #
 # Writes installer\output\release\: manifest.txt plus a .gz asset for every file that changed since
 # the latest published manifest. Unchanged files keep the URL of the release that first shipped them,
@@ -55,6 +55,11 @@ Get-ChildItem $stage -Recurse -File | Sort-Object FullName | ForEach-Object {
         $fs = [IO.File]::Create($dest)
         $gz = New-Object IO.Compression.GZipStream($fs, [IO.Compression.CompressionLevel]::Optimal)
         $in.CopyTo($gz); $gz.Dispose(); $fs.Dispose(); $in.Dispose()
+        # An empty file (UO\Anim3.def) comes out as 0 bytes, which GitHub refuses as an asset:
+        # write a valid gzip stream of nothing instead.
+        if ((Get-Item $dest).Length -eq 0) {
+            [IO.File]::WriteAllBytes($dest, [byte[]](0x1F,0x8B,0x08,0,0,0,0,0,0,0x0A,0x03,0,0,0,0,0,0,0,0,0))
+        }
         $url = "$assetBase/$asset"
         $newAssets++; $newBytes += (Get-Item $dest).Length
     }

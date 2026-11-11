@@ -6,7 +6,7 @@
 param(
     [string]$UODir = "C:\Program Files\Ultima Online 2D",
     [string]$Iscc = "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
-    [string]$Version = "1.1.0.0"
+    [string]$Version = "1.2.0.0"
 )
 $ErrorActionPreference = 'Stop'
 $here = $PSScriptRoot
