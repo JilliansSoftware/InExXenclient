@@ -18,7 +18,6 @@ namespace ClassicUO.IEX
             {
                 // Old client (uo.cfg): footsteps, hold Tab for combat, incoming names,
                 // colored lighting, no dark nights and no always-run are already ClassicUO's defaults.
-                NoColorObjectsOutOfRange = true, // ColorOutOfRange=on: gray out what is out of range
 
                 // Conveniences chosen for the shard.
                 UseCircleOfTransparency = true,
@@ -30,6 +29,7 @@ namespace ClassicUO.IEX
                 IexDarkUi = true, // the shard's black stone and gold windows
                 IexEnhancedLighting = true, // tinted nights, warm fire light, glow
                 IexEnhancedWeather = true, // rain streaks and splashes, storms, water glints
+                IexOutOfRangeReset = true, // no grey fog past the view range (see ProfileManager.Load)
             };
         }
 

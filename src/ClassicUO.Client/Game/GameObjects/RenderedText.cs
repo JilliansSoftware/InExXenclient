@@ -649,6 +649,48 @@ namespace ClassicUO.Game
                         continue;
                     }
 
+                    // IEX: at a text size above 100% the glyph is built at that size (even
+                    // strokes, 1px edge) rather than stretched; see FontGlyphAtlas.GetSizedEntry.
+                    if (scale > 1.01f)
+                    {
+                        int percent = (int)MathF.Round(scale * 100f);
+                        int bearingX = entry.BearingX + (charBorder && IsUnicode ? 1 : 0); // without the edge
+                        float sx = (w + bearingX) * scale + 0.125f;
+                        int ix = (int)MathF.Floor(sx);
+                        int phase = (int)((sx - ix) * 4f) & 3;
+
+                        GlyphAtlasEntry sized = atlas.GetSizedEntry(
+                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, charColor, percent, phase
+                        );
+
+                        if (sized.IsValid)
+                        {
+                            int top = lineOffsY + sized.BearingY;
+
+                            if (w + bearingX + sized.GlyphWidth / scale > clipOffsetX
+                                && w + bearingX < clipOffsetX + clipWidth
+                                && top + sized.GlyphHeight / scale > clipOffsetY
+                                && top < clipOffsetY + clipHeight)
+                            {
+                                batcher.Draw(
+                                    sized.Texture,
+                                    new Rectangle(
+                                        destX + ix - sized.Pad - (int)(clipOffsetX * scale),
+                                        destY + (int)MathF.Round(lineOffsY * scale) + (int)MathF.Floor(sized.BearingY * scale) - sized.Pad - (int)(clipOffsetY * scale),
+                                        sized.GlyphWidth,
+                                        sized.GlyphHeight
+                                    ),
+                                    sized.UV,
+                                    charHueVector,
+                                    depth
+                                );
+                            }
+
+                            w += entry.AdvanceWidth;
+                            continue;
+                        }
+                    }
+
                     if (entry.IsValid)
                     {
                         int localX = w + entry.BearingX;

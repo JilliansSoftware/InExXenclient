@@ -49,6 +49,15 @@ namespace ClassicUO.Configuration
             CurrentProfile.CharacterName = charactername;
 
             ValidateFields(CurrentProfile);
+
+            // IEX: the shard used to turn on "gray out of range" for new characters (a grey fog
+            // past the view range); switch it off once for profiles made with that default.
+            if (!CurrentProfile.IexOutOfRangeReset)
+            {
+                CurrentProfile.NoColorObjectsOutOfRange = false;
+                CurrentProfile.IexOutOfRangeReset = true;
+            }
+
             IEX.IexDarkUi.Apply(); // IEX: dark windows follow the profile
         }
 
