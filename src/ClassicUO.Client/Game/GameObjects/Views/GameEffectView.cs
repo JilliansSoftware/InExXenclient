@@ -250,6 +250,8 @@ namespace ClassicUO.Game.GameObjects
                 Client.Game.GetScene<GameScene>().AddLight(Source, Source, posX + 22, posY + 22);
             }
 
+            Client.Game.GetScene<GameScene>()?.IexAddEffectLight(Graphic, X, Y, posX + 22, posY + 22); // IEX: spells cast light
+
             return true;
         }
 

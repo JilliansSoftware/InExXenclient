@@ -441,6 +441,13 @@ namespace ClassicUO.Game
                         Vector2 start = new Vector2(x + oldX, y + oldY);
                         Vector2 end = new Vector2(x + effect.X, y + effect.Y);
 
+                        if (IEX.IexWeather.On) // IEX: thin pale streaks
+                        {
+                            IEX.IexWeather.DrawRain(batcher, i, start, end, layerDepth);
+
+                            break;
+                        }
+
                         batcher.DrawLine
                         (
                            SolidColorTextureCache.GetTexture(Color.Blue),
@@ -461,6 +468,13 @@ namespace ClassicUO.Game
                         snowRect.X = x + (int) effect.X;
                         snowRect.Y = y + (int) effect.Y;
 
+                        if (IEX.IexWeather.On) // IEX: flakes of mixed size
+                        {
+                            IEX.IexWeather.DrawSnow(batcher, i, snowRect.X, snowRect.Y, layerDepth);
+
+                            break;
+                        }
+
                         batcher.Draw
                         (
                             SolidColorTextureCache.GetTexture(Color.White),
@@ -471,6 +485,12 @@ namespace ClassicUO.Game
 
                         break;
                 }
+            }
+
+            // IEX: splashes where the rain lands
+            if (IEX.IexWeather.On && (Type == WeatherType.WT_RAIN || Type == WeatherType.WT_STORM_APPROACH))
+            {
+                IEX.IexWeather.DrawSplashes(batcher, CurrentCount, x, y, winsize.X, winsize.Y, passed, layerDepth);
             }
 
             _lastTick = Time.Ticks;

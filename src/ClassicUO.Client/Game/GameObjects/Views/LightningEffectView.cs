@@ -46,6 +46,9 @@ namespace ClassicUO.Game.GameObjects
 
             batcher.SetBlendState(null);
 
+            // IEX: the bolt lights the ground it strikes (0x379F: the energy light)
+            Client.Game.GetScene<ClassicUO.Game.Scenes.GameScene>()?.IexAddEffectLight(0x379F, X, Y, posX + (index.Width >> 1), posY + index.Height);
+
             return true;
         }
     }

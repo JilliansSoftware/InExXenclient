@@ -66,6 +66,7 @@ namespace ClassicUO.Game.UI.Gumps
         private Checkbox _iexDarkUi; // IEX: dark windows
         private Checkbox _iexModernSkills; // IEX: skills window
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
+        private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
         private InputField _gameWindowHeight;
         private Checkbox _maxJournalFilesEnabled;
         private InputField _maxJournalFiles;
@@ -1878,8 +1879,20 @@ namespace ClassicUO.Game.UI.Gumps
                 _iexEnhancedLighting = AddCheckBox
                 (
                     null,
-                    "Enhanced lighting (tinted nights, warm fire light, glow)",
+                    "Enhanced lighting (tinted nights, warm fire light, glow, spell light)",
                     _currentProfile.IexEnhancedLighting,
+                    startX,
+                    startY
+                )
+            );
+
+            section3.Add
+            (
+                _iexEnhancedWeather = AddCheckBox
+                (
+                    null,
+                    "Enhanced weather and water (rain, storms, glints)",
+                    _currentProfile.IexEnhancedWeather,
                     startX,
                     startY
                 )
@@ -3757,6 +3770,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _useColoredLights.IsChecked = false;
                     _darkNights.IsChecked = false;
                     _iexEnhancedLighting.IsChecked = false; // IEX: enhanced lighting
+                    _iexEnhancedWeather.IsChecked = false; // IEX: enhanced weather and water
                     _enableShadows.IsChecked = true;
                     _enableShadowsStatics.IsChecked = true;
                     _terrainShadowLevel.Value = 15;
@@ -4200,6 +4214,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.UseColoredLights = _useColoredLights.IsChecked;
             _currentProfile.UseDarkNights = _darkNights.IsChecked;
             _currentProfile.IexEnhancedLighting = _iexEnhancedLighting.IsChecked; // IEX: enhanced lighting
+            _currentProfile.IexEnhancedWeather = _iexEnhancedWeather.IsChecked; // IEX: enhanced weather and water
             _currentProfile.ShadowsEnabled = _enableShadows.IsChecked;
             _currentProfile.ShadowsStatics = _enableShadowsStatics.IsChecked;
             _currentProfile.TerrainShadowsLevel = _terrainShadowLevel.Value;

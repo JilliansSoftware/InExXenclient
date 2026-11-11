@@ -265,6 +265,7 @@ namespace ClassicUO.Configuration
         public bool IexDarkUi { get; set; } // IEX: dark windows, see IEX/IexDarkUi.cs
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with dark windows), IEX/IexSkillsGump.cs
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
+        public bool IexEnhancedWeather { get; set; } // IEX: rain streaks and splashes, storms, water glints, see IEX/IexWeather.cs
 
         public bool SallosEasyGrab { get; set; }
 

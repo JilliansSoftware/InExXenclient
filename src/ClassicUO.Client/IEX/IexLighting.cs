@@ -1,5 +1,6 @@
 // Enhanced lighting (Options > Video, "Enhanced lighting"): tinted darkness, warm fire light
-// with a slight flicker, softened light edges and glow. The art itself is never filtered:
+// with a slight flicker, softened light edges and glow, a colour grade that follows the hour,
+// darker screen edges underground, and light cast by spells and explosions. The art itself is never filtered:
 // only the light laid over it changes. The shader half lives in
 // ClassicUO.Renderer/IEX/IexLightingPass.cs; the hooks are in Game/Scenes/GameScene.cs.
 
@@ -16,6 +17,12 @@ namespace ClassicUO.IEX
 
         /// <summary>Colour of fire light: torches, candles, braziers, forges, lanterns.</summary>
         public const uint WarmRgb = 0xFF_CC_8C;
+
+        /// <summary>Rows of the light colour table for spell light: flame and energy.</summary>
+        public const ushort FlameShader = 58;
+        public const uint FlameRgb = 0xFF_9A_40;
+        public const ushort EnergyShader = 57;
+        public const uint EnergyRgb = 0x8C_A4_FF;
 
         public static bool On => ProfileManager.CurrentProfile != null && ProfileManager.CurrentProfile.IexEnhancedLighting;
 
@@ -65,8 +72,81 @@ namespace ClassicUO.IEX
             return _tints[_tints.Length - 1].Tint;
         }
 
+        // The finished picture by the world's light level: colour balance, colour strength,
+        // and how far the screen edges fall away. Day is untouched.
+        private static readonly (int Level, Vector3 Tint, float Saturation, float Vignette)[] _grades =
+        {
+            (0, new Vector3(1.00f, 1.00f, 1.00f), 1.00f, 0.00f),
+            (4, new Vector3(1.04f, 1.00f, 0.93f), 1.00f, 0.00f),  // low sun: golden
+            (9, new Vector3(1.00f, 1.00f, 1.00f), 0.93f, 0.06f),
+            (13, new Vector3(0.97f, 0.99f, 1.04f), 0.86f, 0.16f), // night: cooler, a little drained
+            (20, new Vector3(0.97f, 0.99f, 1.04f), 0.86f, 0.20f),
+            (26, new Vector3(0.98f, 1.00f, 1.03f), 0.80f, 0.36f), // underground
+        };
+
+        /// <summary>Colour grade and vignette for this light level and weather.</summary>
+        public static void Grade(int overall, float weatherDim, out Vector3 tint, out float saturation, out float vignette)
+        {
+            int i = 1;
+
+            while (i < _grades.Length - 1 && overall > _grades[i].Level)
+            {
+                i++;
+            }
+
+            ref var a = ref _grades[i - 1];
+            ref var b = ref _grades[i];
+            float t = Math.Clamp((overall - a.Level) / (float)(b.Level - a.Level), 0f, 1f);
+
+            tint = Vector3.Lerp(a.Tint, b.Tint, t);
+            saturation = a.Saturation + (b.Saturation - a.Saturation) * t;
+            vignette = a.Vignette + (b.Vignette - a.Vignette) * t;
+
+            // rain and storms drain colour too
+            saturation *= 1f - weatherDim;
+        }
+
+        /// <summary>
+        /// Light cast by a spell effect, by its graphic: which colour row, how large (1 = the
+        /// light sprite at its own size) and which light sprite. False for effects that cast none.
+        /// </summary>
+        public static bool EffectLight(ushort graphic, out ushort color, out float scale, out byte id)
+        {
+            id = 1;
+
+            if (graphic >= 0x36B0 && graphic <= 0x36D3) // explosions
+            {
+                color = FlameShader;
+                scale = 1.15f;
+            }
+            else if (graphic >= 0x36D4 && graphic <= 0x3727) // fireball, magic arrow, fire bolts, flamestrike
+            {
+                color = FlameShader;
+                scale = graphic >= 0x3709 ? 1f : 0.6f;
+            }
+            else if (graphic >= 0x379F && graphic <= 0x37B8) // energy bolt
+            {
+                color = EnergyShader;
+                scale = 0.6f;
+            }
+            else if (graphic >= 0x373A && graphic <= 0x379E) // sparkles: heals, blessings, curses
+            {
+                color = 0;
+                scale = 0.45f;
+            }
+            else
+            {
+                color = 0;
+                scale = 0f;
+
+                return false;
+            }
+
+            return true;
+        }
+
         /// <summary>True for the light colours that are fire: our warm row and the stock oranges.</summary>
-        public static bool IsFire(ushort color) => color == WarmShader || color == 30 || color == 31;
+        public static bool IsFire(ushort color) => color == WarmShader || color == FlameShader || color == 30 || color == 31;
 
         /// <summary>A seed that stays with one light: never 0, which means "no flicker".</summary>
         public static ushort Seed(uint serial, int x, int y)

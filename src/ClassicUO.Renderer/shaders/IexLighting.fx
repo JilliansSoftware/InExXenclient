@@ -16,6 +16,9 @@ float3 Ambient;        // the darkness colour the light map was cleared to
 float Soften;          // 0..1, how much of the blurred light map replaces the sharp one
 float GlowStrength;    // how far bright cores bleed and lift the picture
 float2 LightMapSize;   // light map size in pixels, for the dither pattern
+float3 GradeTint;      // colour balance of the finished picture (white = untouched)
+float Saturation;      // 1 = untouched, lower drains colour (night, storms)
+float Vignette;        // 0 = none, darkening of the screen edges (underground, deep night)
 
 sampler DrawSampler : register(s0);
 // s1/s2 hold the hue tables and s3 is reset to point sampling by the batcher: use s4/s5.
@@ -86,7 +89,17 @@ float4 PixelShader_Composite(PS_INPUT IN) : COLOR0
 	float noise = frac(52.9829189f * frac(dot(p, float2(0.06711056f, 0.00583715f))));
 	light += (noise - 0.5f) / 255.0f;
 
-	return float4(world.rgb * max(light, 0.0f), world.a);
+	float3 lit = world.rgb * max(light, 0.0f);
+
+	// grade: the whole picture, lit areas included, leans with the hour and the weather
+	float luma = dot(lit, float3(0.2126f, 0.7152f, 0.0722f));
+	lit = lerp(float3(luma, luma, luma), lit, Saturation) * GradeTint;
+
+	// vignette: the corners fall away
+	float2 q = uv * 2.0f - 1.0f;
+	lit *= 1.0f - Vignette * smoothstep(0.55f, 1.35f, length(q));
+
+	return float4(lit, world.a);
 }
 
 technique Blur

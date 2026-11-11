@@ -29,6 +29,7 @@ namespace ClassicUO.IEX
                 ShowJournalClient = true,
                 IexDarkUi = true, // the shard's black stone and gold windows
                 IexEnhancedLighting = true, // tinted nights, warm fire light, glow
+                IexEnhancedWeather = true, // rain streaks and splashes, storms, water glints
             };
         }
 

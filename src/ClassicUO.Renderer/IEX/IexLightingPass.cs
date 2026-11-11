@@ -25,6 +25,11 @@ namespace ClassicUO.Renderer.IEX
         public float Soften = 0.5f;
         public float GlowStrength = 0.35f;
 
+        /// <summary>Colour balance, colour strength and edge darkening of the finished picture.</summary>
+        public Vector3 GradeTint = Vector3.One;
+        public float Saturation = 1f;
+        public float Vignette;
+
         public bool Available => !_failed;
 
         /// <summary>Blurs the light map into a half size copy. Call with no render target set and outside a batch.</summary>
@@ -78,6 +83,9 @@ namespace ClassicUO.Renderer.IEX
             _effect.Soften.SetValue(Soften);
             _effect.GlowStrength.SetValue(GlowStrength);
             _effect.LightMapSize.SetValue(new Vector2(light.Width, light.Height));
+            _effect.GradeTint.SetValue(GradeTint);
+            _effect.Saturation.SetValue(Saturation);
+            _effect.Vignette.SetValue(Vignette);
 
             device.Textures[4] = light;
             device.Textures[5] = _blurB;
@@ -152,6 +160,9 @@ namespace ClassicUO.Renderer.IEX
             Soften = Parameters["Soften"];
             GlowStrength = Parameters["GlowStrength"];
             LightMapSize = Parameters["LightMapSize"];
+            GradeTint = Parameters["GradeTint"];
+            Saturation = Parameters["Saturation"];
+            Vignette = Parameters["Vignette"];
 
             Blur = Techniques["Blur"];
             Composite = Techniques["Composite"];
@@ -164,6 +175,9 @@ namespace ClassicUO.Renderer.IEX
         public EffectParameter Soften { get; }
         public EffectParameter GlowStrength { get; }
         public EffectParameter LightMapSize { get; }
+        public EffectParameter GradeTint { get; }
+        public EffectParameter Saturation { get; }
+        public EffectParameter Vignette { get; }
         public EffectTechnique Blur { get; }
         public EffectTechnique Composite { get; }
     }

@@ -35,5 +35,6 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 (C-E not reviewed yet)
 ## F. Graphics
 - [x] Enhanced lighting, phase 1 (Options > Video, "Enhanced lighting", on for new characters): tinted darkness (warm at dusk, blue at night, colder underground; same brightness as stock), warm fire light with a slight flicker, softened light edges and glow. `IEX/IexLighting.cs`, `ClassicUO.Renderer/IEX/IexLightingPass.cs`, `shaders/IexLighting.fx` (recompile with `compile_shaders.bat`); hooks in `RenderTargets.cs`, `GameScene.cs`, `LightColors.cs`. Falls back to stock lighting if the shader does not load. Tried in game 2026-11-10.
-- [ ] Phase 2 atmosphere (day/night grade, weather, dungeon vignette, water) - proposed 2026-11-10
-- [ ] Phase 3 polish (soft shadows, spell lights, sharp scaling, CRT filter) - proposed 2026-11-10
+- [x] Atmosphere, phase 2 (same "Enhanced lighting" option): colour grade by the hour (golden low sun, cooler and a little drained at night), darker screen edges underground and at deep night, light cast by spells, explosions and lightning bolts (`IexLighting.Grade`, `EffectLight`; hooks in `GameEffectView.cs`, `LightningEffectView.cs`). Shader render-tested offline (Vulkan); not yet tried in game.
+- [x] Weather and water (Options > Video, "Enhanced weather and water", on for new characters): rain as thin streaks with splashes, snow of mixed sizes, glints on open water (`IEX/IexWeather.cs`, `IEX/IexWater.cs`; hooks in `Weather.cs`, `GameScene.cs`). With enhanced lighting also on: rain and storms dim and grey the picture, storms flash with lightning and thunder. Not yet tried in game.
+- [ ] Phase 3 polish (soft shadows, sharp scaling, CRT filter) - proposed 2026-11-10

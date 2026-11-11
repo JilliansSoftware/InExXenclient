@@ -79,10 +79,11 @@ namespace ClassicUO.Game.Scenes
         public bool UpdateDrawPosition { get; set; }
         public bool DisconnectionRequested { get; set; }
         public bool UseLights =>
+            IEX.IexWeather.ForceLights || ( // IEX: rain dims the day, which needs the light map
             ProfileManager.CurrentProfile != null
             && ProfileManager.CurrentProfile.UseCustomLightLevel
                 ? _world.Light.Personal < _world.Light.Overall
-                : _world.Light.RealPersonal < _world.Light.RealOverall;
+                : _world.Light.RealPersonal < _world.Light.RealOverall);
         public bool UseAltLights =>
             ProfileManager.CurrentProfile != null
             && ProfileManager.CurrentProfile.UseAlternativeLights;
@@ -536,6 +537,7 @@ namespace ClassicUO.Game.Scenes
 
                 // IEX: enhanced lighting - plain lights burn warm, and fire flickers
                 light.IexSeed = 0;
+                light.IexScale = 1f;
 
                 if (IEX.IexLighting.On && !UseAltLights && ProfileManager.CurrentProfile.UseColoredLights)
                 {
@@ -559,6 +561,32 @@ namespace ClassicUO.Game.Scenes
                 light.DrawY = y;
                 _lightCount++;
             }
+        }
+
+        // IEX: light cast by a spell effect (IEX/IexLighting.cs, EffectLight). Unlike AddLight
+        // this takes the light as given: effects are not items and carry no light of their own.
+        public void IexAddEffectLight(ushort graphic, int worldX, int worldY, int x, int y)
+        {
+            if (
+                _lightCount >= LightsLoader.MAX_LIGHTS_DATA_INDEX_COUNT
+                || !IEX.IexLighting.On
+                || !UseLights
+                || UseAltLights
+                || !ProfileManager.CurrentProfile.UseColoredLights
+                || !IEX.IexLighting.EffectLight(graphic, out ushort color, out float scale, out byte id)
+            )
+            {
+                return;
+            }
+
+            ref LightData light = ref _lights[_lightCount++];
+            light.ID = id;
+            light.Color = (ushort)(color != 0 ? color + 1 : 0);
+            light.IsHue = false;
+            light.DrawX = x;
+            light.DrawY = y;
+            light.IexSeed = IEX.IexLighting.Seed(0, worldX, worldY);
+            light.IexScale = scale;
         }
 
         private void FillGameObjectList()
@@ -1055,6 +1083,8 @@ namespace ClassicUO.Game.Scenes
                 );
             }
 
+            IEX.IexWater.Draw(batcher, _visibleChunks, _offset.X, _offset.Y); // IEX: glints on open water
+
             // draw weather
             _world.Weather.Draw(batcher, 0, 0, MAX_LAYER_DEPTH - 1);
 
@@ -1073,6 +1103,8 @@ namespace ClassicUO.Game.Scenes
 
         private bool PrepareLightsRendering(UltimaBatcher2D batcher, ref Matrix matrix, RenderTargets renderTargets)
         {
+            IEX.IexWeather.Update(_world); // IEX: storm dimming and lightning
+
             InitializeRenderTargets(renderTargets);
 
             if (
@@ -1112,6 +1144,14 @@ namespace ClassicUO.Game.Scenes
                 if (iexLighting)
                 {
                     Vector3 ambient = IEX.IexLighting.Ambient(Math.Max(lightColor, 0f), _world.Light.Overall);
+                    ambient = IEX.IexWeather.Apply(ambient);
+                    IEX.IexLighting.Grade(
+                        _world.Light.Overall,
+                        IEX.IexWeather.Dim,
+                        out renderTargets.IexLighting.GradeTint,
+                        out renderTargets.IexLighting.Saturation,
+                        out renderTargets.IexLighting.Vignette
+                    );
                     batcher.GraphicsDevice.Clear(ClearOptions.Target, new Vector4(ambient, 1), 0f, 0);
                     renderTargets.IexLighting.Ambient = ambient;
                     renderTargets.IexLighting.Requested = true;
@@ -1152,6 +1192,7 @@ namespace ClassicUO.Game.Scenes
                 {
                     // IEX: fire light breathes a little, about its own centre
                     IEX.IexLighting.Flicker(l.IexSeed, out float scale, out hue.Z);
+                    scale *= l.IexScale;
 
                     batcher.Draw(
                         lightInfo.Texture,
@@ -1335,6 +1376,7 @@ namespace ClassicUO.Game.Scenes
             public int DrawX,
                 DrawY;
             public ushort IexSeed; // IEX: flicker seed for fire light, 0 = steady
+            public float IexScale; // IEX: size of the light, 1 = the sprite at its own size
         }
     }
 }
