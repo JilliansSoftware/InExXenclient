@@ -369,7 +369,9 @@ namespace ClassicUO.Game.UI.Gumps.CharCreation
             CharacterListFlags flags = World.ClientFeatures.Flags;
             LockedFeatureFlags locks = World.ClientLockedFeatures.Flags;
 
-            bool allowElf = (flags & CharacterListFlags.CLF_ELVEN_RACE) != 0 && locks.HasFlag(LockedFeatureFlags.ML);
+            // IEX: the shard offers elves cosmetically under T2A, without the ML feature lock.
+            // The server still decides by sending the elven-race character list flag.
+            bool allowElf = (flags & CharacterListFlags.CLF_ELVEN_RACE) != 0;
             bool allowGarg = locks.HasFlag(LockedFeatureFlags.SA);
 
             if (race == RaceType.ELF && !allowElf)
