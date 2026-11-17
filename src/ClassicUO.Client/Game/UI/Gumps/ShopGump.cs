@@ -313,6 +313,16 @@ namespace ClassicUO.Game.UI.Gumps
 
         public bool IsBuyGump { get; }
 
+        // IEX: the shard's shop window (IEX/IexShopGump.cs) when its option is on, else this one.
+        public static ShopGump Create(World world, uint serial, bool isBuyGump, int x, int y) =>
+            IEX.IexShopGump.Use ? new IEX.IexShopGump(world, serial, isBuyGump, x, y) : new ShopGump(world, serial, isBuyGump, x, y);
+
+        // IEX: for IexShopGump, which builds its own controls.
+        protected ShopGump(World world, uint serial, bool isBuyGump) : base(world, serial, 0)
+        {
+            IsBuyGump = isBuyGump;
+        }
+
         //public void SetIfNameIsFromCliloc(Item it, bool fromcliloc)
         //{
         //    if (_shopItems.TryGetValue(it, out var shopItem))
@@ -331,7 +341,7 @@ namespace ClassicUO.Game.UI.Gumps
             _buttonScroll = ButtonScroll.None;
         }
 
-        public void AddItem(
+        public virtual void AddItem( // IEX: virtual
             uint serial,
             ushort graphic,
             ushort hue,
@@ -360,7 +370,7 @@ namespace ClassicUO.Game.UI.Gumps
             _shopItems.Add(serial, shopItem);
         }
 
-        public void SetNameTo(Item item, string name)
+        public virtual void SetNameTo(Item item, string name) // IEX: virtual
         {
             if (!string.IsNullOrEmpty(name) && _shopItems.TryGetValue(item, out ShopItem shopItem))
             {
@@ -370,6 +380,12 @@ namespace ClassicUO.Game.UI.Gumps
 
         public override void Update()
         {
+            if (_shopItems == null) // IEX: IexShopGump has none of the stock controls
+            {
+                base.Update();
+                return;
+            }
+
             if (!World.InGame || IsDisposed)
             {
                 return;

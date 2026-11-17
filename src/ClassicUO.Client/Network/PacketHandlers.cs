@@ -1347,7 +1347,7 @@ namespace ClassicUO.Network
 
                 UIManager.GetGump<ShopGump>(serial)?.Dispose();
 
-                ShopGump gump = new ShopGump(world, serial, true, 150, 5);
+                ShopGump gump = ShopGump.Create(world, serial, true, 150, 5) /* IEX */;
                 UIManager.Add(gump);
 
                 for (Layer layer = Layer.ShopBuyRestock; layer < Layer.ShopBuy + 1; layer++)
@@ -2722,7 +2722,7 @@ namespace ClassicUO.Network
 
             if (gump == null)
             {
-                gump = new ShopGump(world, vendor, true, 150, 5);
+                gump = ShopGump.Create(world, vendor, true, 150, 5) /* IEX */;
                 UIManager.Add(gump);
             }
 
@@ -3380,7 +3380,7 @@ namespace ClassicUO.Network
 
             ShopGump gump = UIManager.GetGump<ShopGump>(vendor);
             gump?.Dispose();
-            gump = new ShopGump(world, vendor, false, 100, 0);
+            gump = ShopGump.Create(world, vendor, false, 100, 0) /* IEX */;
 
             for (int i = 0; i < countItems; i++)
             {

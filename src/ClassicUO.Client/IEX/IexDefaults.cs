@@ -31,6 +31,7 @@ namespace ClassicUO.IEX
                 IexEnhancedLighting = true, // tinted nights, warm fire light, glow
                 IexEnhancedWeather = true, // rain streaks and splashes, storms, water glints
                 IexOutOfRangeReset = true, // no grey fog past the view range (see ProfileManager.Load)
+                IexModernShop = true, // one resizable shop window with search and a cart
                 EnableMousewheelScaleZoom = true, // Ctrl + mouse wheel zooms the game view (smoothly, see Camera)
             };
         }
