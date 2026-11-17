@@ -540,9 +540,9 @@ namespace ClassicUO.Game.UI.Gumps
 
     internal class StatusGumpModern : StatusGumpBase
     {
-        // IEX: on the dark status art the current/max dividers are dim gold, numbers parchment
-        // and the name gold.
-        private static uint IexLineColor => ClassicUO.IEX.IexDarkUi.Active ? 0xFF105888u : 0xFF383838u;
+        // IEX: on the themed status art the current/max dividers are dim gold (brown on light),
+        // numbers parchment (ink on light) and the name gold (ink on light).
+        private static uint IexLineColor => ClassicUO.IEX.IexDarkUi.Light ? 0xFF183868u : ClassicUO.IEX.IexDarkUi.Active ? 0xFF105888u : 0xFF383838u;
 
         public StatusGumpModern(World world) : base(world)
         {
@@ -1333,12 +1333,12 @@ namespace ClassicUO.Game.UI.Gumps
             TEXT_ALIGN_TYPE alignment = TEXT_ALIGN_TYPE.TS_LEFT
         )
         {
-            if (ClassicUO.IEX.IexDarkUi.Active && hue == 0x0386) // IEX: readable on the dark art
+            if (ClassicUO.IEX.IexDarkUi.Active && hue == 0x0386) // IEX: readable on the themed art
             {
-                hue = stat == MobileStats.Name ? ClassicUO.IEX.IexDarkUi.GoldHue : ClassicUO.IEX.IexDarkUi.ParchmentHue;
+                hue = stat == MobileStats.Name ? ClassicUO.IEX.IexDarkUi.NameHue : ClassicUO.IEX.IexDarkUi.TextHue;
             }
 
-            bool dark = ClassicUO.IEX.IexDarkUi.Active; // IEX: crisp Unicode with a black edge
+            bool dark = ClassicUO.IEX.IexDarkUi.Active; // IEX: crisp Unicode (black edge on the dark art)
 
             Label label = new Label
             (
@@ -1347,8 +1347,8 @@ namespace ClassicUO.Game.UI.Gumps
                 hue,
                 maxWidth,
                 align: alignment,
-                font: (byte) (dark ? 0 : 1), // IEX: Unicode font 0 on the dark art
-                style: dark ? FontStyle.BlackBorder : FontStyle.None
+                font: (byte) (dark ? 0 : 1), // IEX: Unicode font 0 on the themed art
+                style: dark ? ClassicUO.IEX.IexDarkUi.TextEdge : FontStyle.None
             )
             {
                 X = x,

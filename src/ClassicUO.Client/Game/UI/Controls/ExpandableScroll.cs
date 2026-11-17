@@ -150,7 +150,7 @@ namespace ClassicUO.Game.UI.Controls
             base.Dispose();
         }
 
-        // IEX: dark windows - the scroll becomes a black stone frame with a gold title plate
+        // IEX: dark and light themes - the scroll becomes a stone frame with a title plate
         private ResizePic _iexFrame, _iexPlate;
         private Control _iexTitle;
 

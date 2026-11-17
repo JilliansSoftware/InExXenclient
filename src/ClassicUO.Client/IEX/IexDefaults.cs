@@ -26,7 +26,8 @@ namespace ClassicUO.IEX
                 ShowJournalSystem = true,
                 ShowJournalObjects = true,
                 ShowJournalClient = true,
-                IexDarkUi = true, // the shard's black stone and gold windows
+                IexTheme = (int)IEX.IexTheme.Dark, // the shard's black stone and gold windows
+                IexDarkUi = true,
                 IexEnhancedLighting = true, // tinted nights, warm fire light, glow
                 IexEnhancedWeather = true, // rain streaks and splashes, storms, water glints
                 IexOutOfRangeReset = true, // no grey fog past the view range (see ProfileManager.Load)

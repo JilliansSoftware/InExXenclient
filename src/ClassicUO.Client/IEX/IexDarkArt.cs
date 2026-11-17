@@ -1,6 +1,7 @@
-// Art for the "Dark windows" option: black stone with gold trim for every stock window
-// background family, drawn in code from a cross-section (edge, gold, stone band, gold, shadow,
-// fill). Depends only on the asset loader, so it can be run outside the game to preview.
+// Art for the window themes: every stock window background family drawn in code from a
+// cross-section (edge, trim, stone band, trim, shadow, fill). Dark is black stone with gold
+// trim; Light is layered sandstone with bronze trim. Depends only on the asset loader, so it
+// can be run outside the game to preview.
 
 using System;
 using System.Collections.Generic;
@@ -18,20 +19,50 @@ namespace ClassicUO.IEX
             0x23F0, 0x2422, 0x242C, 0x2436, 0x2454, 0x2486, 0x24A4, 0x24B8, 0x24EA, 0x251C,
         };
 
-        // Palette (picked in the mockups; reduced to UO's 15-bit colors when drawn).
-        static readonly (int R, int G, int B) Edge = (6, 6, 8);
-        static readonly (int R, int G, int B) Band = (62, 62, 68);
-        static readonly (int R, int G, int B) BandHi = (100, 100, 108);
-        static readonly (int R, int G, int B) BandLo = (30, 30, 34);
-        static readonly (int R, int G, int B) Fill = (16, 16, 19);
-        static readonly (int R, int G, int B) Shadow = (4, 4, 5);
-        static readonly (int R, int G, int B) GoldHi = (248, 216, 112);
-        static readonly (int R, int G, int B) Gold = (224, 168, 48);
-        static readonly (int R, int G, int B) GoldLo = (136, 88, 16);
+        // Palette of the theme being built (see Use). Colors are reduced to UO's 15-bit range
+        // when drawn. "Gold" is the trim: gold on the dark theme, bronze on the light one.
+        static (int R, int G, int B) Edge, Band, BandHi, BandLo, Fill, Shadow, GoldHi, Gold, GoldLo;
+        // Button faces, recessed wells (checkbox, scroll track), scroll thumb.
+        static (int R, int G, int B) Face, FaceDown, Well, Thumb;
+        // Small glyphs (arrows, check mark, icons), button labels, text painted into stock art.
+        static (int R, int G, int B) InkHi, Ink, Label, LabelShadow, Letter, LetterBack;
+        // Window titles: outline, then dark to bright through the letter.
+        static (int R, int G, int B) TitleEdge, TitleLo, TitleMid, TitleHi;
+        static bool _light;
+
+        static void Use(bool light)
+        {
+            _light = light;
+
+            if (!light)
+            {
+                // Black stone, gold trim (picked in the mockups).
+                Edge = (6, 6, 8); Band = (62, 62, 68); BandHi = (100, 100, 108); BandLo = (30, 30, 34);
+                Fill = (16, 16, 19); Shadow = (4, 4, 5);
+                GoldHi = (248, 216, 112); Gold = (224, 168, 48); GoldLo = (136, 88, 16);
+                Face = (34, 34, 40); FaceDown = (52, 52, 60); Well = (8, 8, 10); Thumb = (44, 44, 50);
+                InkHi = GoldHi; Ink = Gold; Label = GoldHi; LabelShadow = Edge;
+                Letter = (232, 220, 190); LetterBack = (24, 22, 20);
+                TitleEdge = (6, 6, 8); TitleLo = GoldLo; TitleMid = Gold; TitleHi = GoldHi;
+            }
+            else
+            {
+                // Sandstone, bronze trim, dark brown lettering.
+                Edge = (70, 46, 26); Band = (198, 164, 116); BandHi = (240, 218, 176); BandLo = (148, 116, 78);
+                Fill = (228, 204, 160); Shadow = (156, 124, 86);
+                GoldHi = (204, 150, 68); Gold = (164, 110, 42); GoldLo = (104, 64, 22);
+                Face = (212, 182, 134); FaceDown = (184, 152, 106); Well = (242, 226, 192); Thumb = (204, 172, 124);
+                InkHi = (124, 70, 22); Ink = (88, 48, 14); Label = (72, 40, 12); LabelShadow = (248, 232, 198);
+                Letter = (72, 40, 12); LetterBack = (244, 228, 194);
+                TitleEdge = (52, 30, 12); TitleLo = (84, 44, 12); TitleMid = (128, 72, 22); TitleHi = (168, 104, 40);
+            }
+        }
+
         enum Side { Top, Left, Bottom, Right }
 
-        public static void Build(UOFileManager files, ICollection<ushort> active)
+        public static void Build(UOFileManager files, ICollection<ushort> active, bool light = false)
         {
+            Use(light);
             GumpsLoader loader = files.Gumps;
             // Stone texture from the stock grey stone background, used darkened in the band.
             float[] stone = null;
@@ -61,6 +92,9 @@ namespace ClassicUO.IEX
             }
 
             int len = sw > 0 ? Math.Min(sw, 64) : 32;
+            // The sandstone layers repeat with the stone texture, so the middle piece is one
+            // whole repeat and tiles without seams.
+            int fw = light ? (sw > 0 ? sw : SandRepeat) : len, fh = light ? (sh > 0 ? sh : SandRepeat) : len;
 
             foreach (ushort family in Families)
             {
@@ -100,7 +134,7 @@ namespace ClassicUO.IEX
                 Put(loader, family + 1, len, f, frame, (x, y) => frame.At(Side.Top, y, x));
                 Put(loader, family + 2, f, f, frame, (x, y) => Corner(frame, x, y, f, f, true, false));
                 Put(loader, family + 3, f, len, frame, (x, y) => frame.At(Side.Left, x, y));
-                Put(loader, family + 4, len, len, frame, (x, y) => frame.FillAt(x, y));
+                Put(loader, family + 4, fw, fh, frame, (x, y) => frame.FillAt(x, y));
                 Put(loader, family + 5, f, len, frame, (x, y) => frame.At(Side.Right, f - 1 - x, y));
                 Put(loader, family + 6, f, f, frame, (x, y) => Corner(frame, x, y, f, f, false, true));
                 Put(loader, family + 7, len, f, frame, (x, y) => frame.At(Side.Bottom, f - 1 - y, x));
@@ -162,8 +196,10 @@ namespace ClassicUO.IEX
         {
             var assembly = typeof(IexDarkArt).Assembly;
 
-            foreach (var (resource, w, h, ids) in Painted)
+            foreach (var (name, w, h, ids) in Painted)
             {
+                // The light theme has its own copies (branding/art/make_light.py).
+                string resource = _light ? name.Replace(".rgba.gz", "-light.rgba.gz") : name;
                 using var stream = assembly.GetManifestResourceStream(resource);
 
                 if (stream == null)
@@ -237,16 +273,18 @@ namespace ClassicUO.IEX
                 loader.IexOverrides[0x2344] = (px, slot.Width, slot.Height);
             }
 
-            Recolored(loader, 0x243A, (r, g, b, x, y) => Pack((Fill.R + Noise(x, y, 3), Fill.G + Noise(x, y, 3), Fill.B + Noise(x, y, 3))));
+            Recolored(loader, 0x243A, (r, g, b, x, y) => _light
+                ? Pack(Sand(Fill, x, y, stone, sw, sh))
+                : Pack((Fill.R + Noise(x, y, 3), Fill.G + Noise(x, y, 3), Fill.B + Noise(x, y, 3))));
 
-            // Text painted into the skills scroll: "New Group" (blue) to gold; the help line
-            // (dark letters, tan engraving) to parchment letters with a dark shadow.
+            // Text painted into the skills scroll: "New Group" (blue) to the title color; the
+            // help line (dark letters, tan engraving) to the theme's lettering and its backing.
             Recolored(loader, 0x083A, (r, g, b, x, y) =>
             {
                 float v = Math.Max(r, Math.Max(g, b)) / 255f;
-                return v < 0.15f ? Pack(Edge) : GoldRamp((v - 0.15f) / 0.6f);
+                return TitleColor(v, 0.15f);
             });
-            Recolored(loader, 0x0836, (r, g, b, x, y) => (r + g + b) / 3 < 90 ? Pack((232, 220, 190)) : Pack((24, 22, 20)));
+            Recolored(loader, 0x0836, (r, g, b, x, y) => (r + g + b) / 3 < 90 ? Pack(Letter) : Pack(LetterBack));
 
             foreach (var (first, label) in Buttons)
             {
@@ -260,9 +298,9 @@ namespace ClassicUO.IEX
                     }
 
                     bool pressed = state == 1;
-                    var frame = new Frame(6, stone, sw, sh, pressed ? (52, 52, 60) : (34, 34, 40));
+                    var frame = new Frame(6, stone, sw, sh, pressed ? FaceDown : Face);
                     uint[] px = Box(g.Width, g.Height, frame);
-                    font?.Draw(px, g.Width, g.Height, label, pressed ? 1 : 0, Pack(GoldHi), Pack(Edge));
+                    font?.Draw(px, g.Width, g.Height, label, pressed ? 1 : 0, Pack(Label), Pack(LabelShadow));
                     loader.IexOverrides[first + state] = (px, g.Width, g.Height);
                 }
             }
@@ -277,7 +315,7 @@ namespace ClassicUO.IEX
                     continue;
                 }
 
-                uint[] px = Box(g.Width, g.Height, new Frame(4, null, 0, 0, (8, 8, 10)), inset: 2);
+                uint[] px = Box(g.Width, g.Height, new Frame(4, null, 0, 0, Well), inset: 2);
 
                 if (id == 0x00D3)
                 {
@@ -297,7 +335,7 @@ namespace ClassicUO.IEX
 
             if (thumb.Width > 0)
             {
-                uint[] px = Box(thumb.Width, thumb.Height, new Frame(4, null, 0, 0, (44, 44, 50)));
+                uint[] px = Box(thumb.Width, thumb.Height, new Frame(4, null, 0, 0, Thumb));
 
                 for (int k = -1; k <= 1; k++)
                 {
@@ -305,7 +343,7 @@ namespace ClassicUO.IEX
 
                     for (int x = 3; x < thumb.Width - 3; x++)
                     {
-                        px[y * thumb.Width + x] = Pack(Gold);
+                        px[y * thumb.Width + x] = Pack(Ink);
                     }
                 }
 
@@ -332,7 +370,7 @@ namespace ClassicUO.IEX
                             : x == 1 ? GoldHi
                             : x == g.Width - 2 ? GoldLo
                             : x == 2 ? Shadow
-                            : (8 + n, 8 + n, 10 + n);
+                            : (Well.R + n, Well.G + n, Well.B + n);
                         px[y * g.Width + x] = Pack(c);
                     }
                 }
@@ -350,7 +388,7 @@ namespace ClassicUO.IEX
                     continue;
                 }
 
-                uint[] px = Box(g.Width, g.Height, new Frame(6, stone, sw, sh, id == 0x082F ? (52, 52, 60) : (34, 34, 40)));
+                uint[] px = Box(g.Width, g.Height, new Frame(6, stone, sw, sh, id == 0x082F ? FaceDown : Face));
 
                 for (int k = -1; k <= 1; k++)
                 {
@@ -358,8 +396,8 @@ namespace ClassicUO.IEX
 
                     for (int x = 7; x < g.Width - 7; x++)
                     {
-                        px[y * g.Width + x] = Pack(GoldHi);
-                        px[(y + 1) * g.Width + x] = Pack(GoldLo);
+                        px[y * g.Width + x] = Pack(_light ? Ink : GoldHi);
+                        px[(y + 1) * g.Width + x] = Pack(_light ? LabelShadow : GoldLo);
                     }
                 }
 
@@ -396,7 +434,7 @@ namespace ClassicUO.IEX
                 for (int k = 0; k < 2; k++)
                 {
                     int x = cx + pts[i, 0], y = cy + pts[i, 1] + k - 1;
-                    px[y * w + x] = Pack(k == 0 ? GoldHi : Gold);
+                    px[y * w + x] = Pack(k == 0 ? InkHi : Ink);
                 }
             }
         }
@@ -410,7 +448,7 @@ namespace ClassicUO.IEX
                 return;
             }
 
-            uint[] px = Box(g.Width, g.Height, new Frame(4, null, 0, 0, pressed ? (52, 52, 60) : (34, 34, 40)));
+            uint[] px = Box(g.Width, g.Height, new Frame(4, null, 0, 0, pressed ? FaceDown : Face));
             int cx = g.Width / 2, cy = g.Height / 2;
 
             for (int row = 0; row < 5; row++)
@@ -419,7 +457,7 @@ namespace ClassicUO.IEX
 
                 for (int x = cx - row; x <= cx + row; x++)
                 {
-                    px[y * g.Width + x] = Pack(row == 0 ? GoldHi : Gold);
+                    px[y * g.Width + x] = Pack(row == 0 ? InkHi : Ink);
                 }
             }
 
@@ -626,6 +664,11 @@ namespace ClassicUO.IEX
 
             public uint FillAt(int x, int y)
             {
+                if (_light)
+                {
+                    return Pack(Sand(_fill, x, y, _stone, _sw, _sh));
+                }
+
                 int n = Noise(x, y, 3);
                 return Pack((_fill.R + n, _fill.G + n, _fill.B + n));
             }
@@ -645,6 +688,23 @@ namespace ClassicUO.IEX
                 float m = _stone != null ? _stone[(y % _sh) * _sw + (x % _sw)] : 1f + Noise(x, y, 5) / 40f;
                 return ((int)(c.R * m), (int)(c.G * m), (int)(c.B * m));
             }
+        }
+
+        const int SandRepeat = 64;
+
+        /// <summary>
+        /// Sandstone: wavy horizontal layers (darker layers run warmer), the stock stone's relief
+        /// pressed in lightly, fine grain and a few dark flecks. Repeats with the stone texture.
+        /// </summary>
+        static (int R, int G, int B) Sand((int R, int G, int B) c, int x, int y, float[] stone, int sw, int sh)
+        {
+            int pw = sw > 0 ? sw : SandRepeat, ph = sh > 0 ? sh : SandRepeat;
+            double u = 2 * Math.PI * x / pw, v = 2 * Math.PI / ph;
+            double yy = y + 2.5 * Math.Sin(u) + 1.2 * Math.Sin(2 * u + 1.3);
+            double layer = 0.5 * Math.Sin(2 * v * yy) + 0.3 * Math.Sin(5 * v * yy + 0.7) + 0.2 * Math.Sin(11 * v * yy + 2.1);
+            float relief = stone != null ? 1f + (stone[(y % sh) * sw + (x % sw)] - 1f) * 0.5f : 1f;
+            int n = Noise(x, y, 4) - (Noise(x * 7 + 3, y * 13 + 5, 20) == 20 ? 22 : 0);
+            return ((int)(c.R * relief + layer * 10) + n, (int)(c.G * relief + layer * 14) + n, (int)(c.B * relief + layer * 21) + n);
         }
 
         static int Noise(int x, int y, int amount)
@@ -673,7 +733,7 @@ namespace ClassicUO.IEX
                     {
                         int d = Math.Min(Math.Min(x, y), Math.Min(s - 1 - x, s - 1 - y));
                         bool lit = Math.Min(x, y) == d;
-                        px[y * s + x] = d == 0 ? Pack(lit ? GoldHi : GoldLo) : Pack(pressed == 1 ? (60, 54, 40) : (34, 34, 40));
+                        px[y * s + x] = d == 0 ? Pack(lit ? GoldHi : GoldLo) : Pack(pressed == 1 ? (_light ? FaceDown : (60, 54, 40)) : Face);
                     }
                 }
 
@@ -681,7 +741,7 @@ namespace ClassicUO.IEX
                 {
                     for (int r = c; r < 7 - c; r++)
                     {
-                        px[(2 + r) * s + 4 + c] = Pack(GoldHi);
+                        px[(2 + r) * s + 4 + c] = Pack(InkHi);
                     }
                 }
 
@@ -708,7 +768,7 @@ namespace ClassicUO.IEX
                 {
                     if (rows[y][x] == '#')
                     {
-                        px[y * w + x] = Pack(y < h / 2 ? GoldHi : Gold);
+                        px[y * w + x] = Pack(y < h / 2 ? InkHi : Ink);
                     }
                 }
             }
@@ -744,11 +804,19 @@ namespace ClassicUO.IEX
             loader.IexOverrides[id] = (px, g.Width, g.Height);
         }
 
-        /// <summary>Gold shade for t in 0..1 (dark to bright), packed.</summary>
-        public static uint GoldRamp(float t)
+        /// <summary>
+        /// Title lettering from a glyph's brightness (0..1): its dark outline below the
+        /// threshold, then the theme's ramp (gold on dark, dark bronze on light).
+        /// </summary>
+        public static uint TitleColor(float v, float outline = 0.12f)
         {
-            t = Math.Clamp(t, 0f, 1f);
-            var (a, b) = t < 0.5f ? (GoldLo, Gold) : (Gold, GoldHi);
+            if (v < outline)
+            {
+                return Pack(TitleEdge);
+            }
+
+            float t = Math.Clamp((v - outline) / 0.6f, 0f, 1f);
+            var (a, b) = t < 0.5f ? (TitleLo, TitleMid) : (TitleMid, TitleHi);
             float k = t < 0.5f ? t * 2 : (t - 0.5f) * 2;
             return Pack(((int)(a.R + (b.R - a.R) * k), (int)(a.G + (b.G - a.G) * k), (int)(a.B + (b.B - a.B) * k)));
         }

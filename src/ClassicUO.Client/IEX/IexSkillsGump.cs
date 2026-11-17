@@ -1,4 +1,4 @@
-// The shard's skills window (used while "Dark windows" and "Modern skills window" are on):
+// The shard's skills window (used while the Dark or Light theme and "Modern skills window" are on):
 // resizable, a search box, Real/Base/Cap tabs, a groups sidebar (folds into a dropdown when the
 // window is narrow), one row per skill with a use button, the value and a lock button.
 // No progress bars or gain counts - when the next gain comes is left a surprise.
@@ -38,7 +38,7 @@ namespace ClassicUO.IEX
         string _search = string.Empty;
         int _renaming = -1;
 
-        StbTextBox _searchBox;
+        StbTextBox _searchBox, _renameBox;
         ScrollArea _list;
         DataBox _rows;
         Label _total;
@@ -70,6 +70,7 @@ namespace ClassicUO.IEX
         {
             bool searchFocused = _searchBox != null && UIManager.KeyboardFocusControl == _searchBox;
             _groupTargets.Clear();
+            _renameBox = null;
             RemoveAll(this);
 
             Add(new ResizePic(0x0E10) { Width = Width, Height = Height });
@@ -90,7 +91,7 @@ namespace ClassicUO.IEX
                 plateH = plate.Height;
             }
 
-            _total = new Label(TotalText(), true, IexDarkUi.GoldHue, font: 1) { AcceptMouseInput = false };
+            _total = new Label(TotalText(), true, IexDarkUi.AccentHue, font: 1) { AcceptMouseInput = false };
 
             if (Wide)
             {
@@ -108,7 +109,7 @@ namespace ClassicUO.IEX
             if (Wide)
             {
                 int x = Frame + 4 + searchW + 14;
-                var show = new Label("Show:", true, 0x03B2, font: 1) { X = x, Y = y + 3 };
+                var show = new Label("Show:", true, IexDarkUi.DimHue, font: 1) { X = x, Y = y + 3 };
                 Add(show);
                 x += show.Width + 6;
 
@@ -179,10 +180,10 @@ namespace ClassicUO.IEX
         {
             Add(new ResizePic(0x0BB8) { X = x, Y = y, Width = w, Height = 20, AcceptMouseInput = false });
 
-            var hint = new Label("Search...", true, 0x03B2, font: 1) { X = x + 6, Y = y + 3, AcceptMouseInput = false, IsVisible = _search.Length == 0 };
+            var hint = new Label("Search...", true, IexDarkUi.DimHue, font: 1) { X = x + 6, Y = y + 3, AcceptMouseInput = false, IsVisible = _search.Length == 0 };
             Add(hint);
 
-            _searchBox = new StbTextBox(1, 30, w - 10, true, hue: IexDarkUi.ParchmentHue)
+            _searchBox = new StbTextBox(1, 30, w - 10, true, hue: IexDarkUi.TextHue)
             {
                 X = x + 5,
                 Y = y + 2,
@@ -201,7 +202,7 @@ namespace ClassicUO.IEX
 
         int AddTab(int x, int y, string text, bool selected, int index)
         {
-            var label = new Label(text, true, selected ? IexDarkUi.GoldHue : (ushort)0x03B2, font: 1) { AcceptMouseInput = false };
+            var label = new Label(text, true, selected ? IexDarkUi.AccentHue : IexDarkUi.DimHue, font: 1) { AcceptMouseInput = false };
             int w = label.Width + 14;
             Add(new ResizePic(selected ? (ushort)0x0E10 : (ushort)0x0BB8) { X = x, Y = y, Width = w, Height = 20, AcceptMouseInput = false });
             label.X = x + 7;
@@ -212,6 +213,7 @@ namespace ClassicUO.IEX
             {
                 if (e.Button == MouseButtonType.Left)
                 {
+                    EndRename();
                     _show = index;
                     Build();
                 }
@@ -232,14 +234,19 @@ namespace ClassicUO.IEX
 
                 if (view == _renaming)
                 {
-                    var box = new StbTextBox(1, 24, w - 12, true, hue: IexDarkUi.ParchmentHue) { X = x + 6, Y = y, Width = w - 12, Height = 16 };
+                    var box = new StbTextBox(1, 24, w - 12, true, hue: IexDarkUi.TextHue) { X = x + 6, Y = y, Width = w - 12, Height = 16 };
                     box.SetText(names[i]);
                     Add(box);
                     box.SetKeyboardFocus();
+                    _renameBox = box;
+                    _groupTargets.Add((box, view)); // a skill can be dropped on a group while it is being named
                     continue;
                 }
 
-                Add(new Label(names[i], true, view == _view ? IexDarkUi.GoldHue : IexDarkUi.ParchmentHue, w - 12, font: 1, style: FontStyle.Cropped)
+                // Groups show how many skills they hold, so a drop is seen to land.
+                string shown = view >= 2 ? $"{names[i]} ({World.SkillsGroupManager.Groups[view - 2].Count})" : names[i];
+
+                Add(new Label(shown, true, view == _view ? IexDarkUi.AccentHue : IexDarkUi.TextHue, w - 12, font: 1, style: FontStyle.Cropped)
                 {
                     X = x + 6,
                     Y = y,
@@ -254,6 +261,7 @@ namespace ClassicUO.IEX
                         return;
                     }
 
+                    EndRename();
                     _view = view;
                     Build();
                 };
@@ -261,6 +269,7 @@ namespace ClassicUO.IEX
                 {
                     if (view >= 2)
                     {
+                        EndRename();
                         _renaming = view;
                         Build();
                     }
@@ -269,15 +278,17 @@ namespace ClassicUO.IEX
                 _groupTargets.Add((hit, view));
             }
 
-            var add = new Label("+ New group", true, IexDarkUi.GoldHue, font: 1) { X = x + 6, Y = bottom - 20, AcceptMouseInput = false };
+            var add = new Label("+ New group", true, IexDarkUi.AccentHue, font: 1) { X = x + 6, Y = bottom - 20, AcceptMouseInput = false };
             Add(add);
             var addHit = new HitBox(x + 2, bottom - 21, w - 4, 17, alpha: 0.1f);
             addHit.MouseUp += (s, e) =>
             {
                 if (e.Button == MouseButtonType.Left)
                 {
+                    EndRename();
                     World.SkillsGroupManager.Add(new SkillsGroup { Name = "New group" });
-                    _renaming = _view = World.SkillsGroupManager.Groups.Count + 1;
+                    // The list stays on the view it was on, so there are skills to drag in.
+                    _renaming = World.SkillsGroupManager.Groups.Count + 1;
                     Build();
                 }
             };
@@ -360,7 +371,7 @@ namespace ClassicUO.IEX
 
             if (skill.IsClickable)
             {
-                var use = new Button(0, IexDarkArt.UseButton, IexDarkArt.UseButtonPressed, IexDarkArt.UseButton) { X = 3, Y = 3, ButtonAction = ButtonAction.Activate };
+                var use = new Button(0, IexDarkArt.UseButton, IexDarkArt.UseButtonPressed, IexDarkArt.UseButton) { X = 3, Y = 3, ButtonAction = ButtonAction.Activate, ContainsByBounds = true };
                 use.MouseUp += (s, e) =>
                 {
                     if (e.Button == MouseButtonType.Left)
@@ -371,13 +382,15 @@ namespace ClassicUO.IEX
                 row.Add(use);
             }
 
-            row.Add(new Label(skill.Name, true, IexDarkUi.ParchmentHue, w - 80, font: 1, style: FontStyle.Cropped) { X = 18, Y = 0, AcceptMouseInput = false });
+            row.Add(new Label(skill.Name, true, IexDarkUi.TextHue, w - 80, font: 1, style: FontStyle.Cropped) { X = 18, Y = 0, AcceptMouseInput = false });
 
-            var value = new Label(Value(skill).ToString("F1"), true, IexDarkUi.ParchmentHue, font: 1) { Y = 0, AcceptMouseInput = false };
+            var value = new Label(Value(skill).ToString("F1"), true, IexDarkUi.TextHue, font: 1) { Y = 0, AcceptMouseInput = false };
             value.X = w - 18 - value.Width;
             row.Add(value);
 
-            var lockButton = new Button(1, LockArt(skill.Lock), LockArt(skill.Lock), LockArt(skill.Lock)) { X = w - 11, Y = 4, ButtonAction = ButtonAction.Activate };
+            // Hit by its whole box: by the icon's own pixels, a click that landed on the up
+            // arrow's head would fall beside the down arrow's shaft, and the lock would stick.
+            var lockButton = new Button(1, LockArt(skill.Lock), LockArt(skill.Lock), LockArt(skill.Lock)) { X = w - 11, Y = 4, ButtonAction = ButtonAction.Activate, ContainsByBounds = true };
             lockButton.MouseUp += (s, e) =>
             {
                 if (e.Button != MouseButtonType.Left || World.Player == null)
@@ -436,7 +449,7 @@ namespace ClassicUO.IEX
             int index = _dragSkill;
             _dragSkill = -1;
 
-            if (view < 2 || index < 0 || index > byte.MaxValue)
+            if (view < 2 || view - 2 >= World.SkillsGroupManager.Groups.Count || index < 0 || index > byte.MaxValue)
             {
                 return;
             }
@@ -453,17 +466,29 @@ namespace ClassicUO.IEX
             SkillsGroup target = World.SkillsGroupManager.Groups[view - 2];
             target.Add((byte)index);
             target.Sort();
-            RebuildList();
+            EndRename();
+            Build(); // the sidebar counts change too
+        }
+
+        // Keep the name typed so far and close the rename box (Enter does the same).
+        void EndRename()
+        {
+            if (_renaming >= 2 && _renaming - 2 < World.SkillsGroupManager.Groups.Count && _renameBox != null && !string.IsNullOrWhiteSpace(_renameBox.Text))
+            {
+                World.SkillsGroupManager.Groups[_renaming - 2].Name = _renameBox.Text.Trim();
+            }
+
+            _renaming = -1;
         }
 
         public override void OnKeyboardReturn(int textID, string text)
         {
-            if (_renaming >= 2 && _renaming - 2 < World.SkillsGroupManager.Groups.Count && !string.IsNullOrWhiteSpace(text))
+            if (_renaming < 0 || UIManager.KeyboardFocusControl != _renameBox)
             {
-                World.SkillsGroupManager.Groups[_renaming - 2].Name = text.Trim();
+                return; // Enter in the search box
             }
 
-            _renaming = -1;
+            EndRename();
             Build();
         }
 
@@ -510,7 +535,11 @@ namespace ClassicUO.IEX
                 if (Math.Abs(moved.X) + Math.Abs(moved.Y) > 4) // a drag, not a click
                 {
                     Control over = UIManager.MouseOverControl;
-                    var target = _groupTargets.FirstOrDefault(t => t.Hit == over);
+                    // By position, so a drop counts wherever on the group's line it lands.
+                    Point m = Mouse.Position;
+                    var target = _groupTargets.FirstOrDefault(t => !t.Hit.IsDisposed
+                        && m.X >= t.Hit.ScreenCoordinateX && m.X < t.Hit.ScreenCoordinateX + t.Hit.Width
+                        && m.Y >= t.Hit.ScreenCoordinateY - 1 && m.Y < t.Hit.ScreenCoordinateY + Math.Max(17, t.Hit.Height));
 
                     if (target.Hit != null)
                     {

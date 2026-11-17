@@ -63,7 +63,7 @@ namespace ClassicUO.Game.UI.Gumps
         private FontSelector _fontSelectorChat;
         private Checkbox _forceUnicodeJournal;
         private HSliderBar _iexTextSize; // IEX: text size
-        private Checkbox _iexDarkUi; // IEX: dark windows
+        private Combobox _iexTheme; // IEX: window theme (original, dark, light)
         private Checkbox _iexModernSkills; // IEX: skills window
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
@@ -2456,10 +2456,11 @@ namespace ClassicUO.Game.UI.Gumps
             _iexTextSize = AddHSlider(rightArea, IEX.IexText.Min, IEX.IexText.Max, IEX.IexText.Snap(_currentProfile.IexTextScale), startX + 40, startY, 200);
             startY += _iexTextSize.Height + 10;
 
-            // IEX: dark windows
-            _iexDarkUi = AddCheckBox(rightArea, "Dark windows (black stone, gold trim)", _currentProfile.IexDarkUi, startX, startY);
-            startY += _iexDarkUi.Height + 2;
-            _iexModernSkills = AddCheckBox(rightArea, "Modern skills window (with dark windows)", _currentProfile.IexModernSkills, startX, startY);
+            // IEX: window theme
+            Label iexThemeLabel = AddLabel(rightArea, "Window theme:", startX, startY);
+            _iexTheme = AddCombobox(rightArea, IEX.IexDarkUi.ThemeNames, (int)IEX.IexDarkUi.Wanted, startX + iexThemeLabel.Width + 10, startY - 2, 110);
+            startY += _iexTheme.Height + 6;
+            _iexModernSkills = AddCheckBox(rightArea, "Modern skills window (Dark or Light theme)", _currentProfile.IexModernSkills, startX, startY);
             startY += _iexModernSkills.Height + 10;
 
             Label text = AddLabel(rightArea, ResGumps.SpeechFont, startX, startY);
@@ -3799,7 +3800,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _fontSelectorChat.SetSelectedFont(0);
                     _overrideAllFonts.IsChecked = false;
                     _iexTextSize.Value = IEX.IexText.Min; // IEX: text size
-                    _iexDarkUi.IsChecked = false; // IEX: dark windows
+                    _iexTheme.SelectedIndex = (int)IEX.IexTheme.Original; // IEX: window theme
                     _iexModernSkills.IsChecked = true;
                     _overrideAllFontsIsUnicodeCheckbox.SelectedIndex = 1;
 
@@ -4245,10 +4246,11 @@ namespace ClassicUO.Game.UI.Gumps
                 }
             }
 
-            // IEX: dark windows (windows already open keep their text color until reopened)
-            if (_currentProfile.IexDarkUi != _iexDarkUi.IsChecked)
+            // IEX: window theme (windows already open keep their text color until reopened)
+            if ((int)IEX.IexDarkUi.Wanted != _iexTheme.SelectedIndex)
             {
-                _currentProfile.IexDarkUi = _iexDarkUi.IsChecked;
+                _currentProfile.IexTheme = _iexTheme.SelectedIndex;
+                _currentProfile.IexDarkUi = _iexTheme.SelectedIndex == (int)IEX.IexTheme.Dark;
                 IEX.IexDarkUi.Apply();
             }
 

@@ -58,7 +58,7 @@ namespace ClassicUO.Configuration
                 CurrentProfile.IexOutOfRangeReset = true;
             }
 
-            IEX.IexDarkUi.Apply(); // IEX: dark windows follow the profile
+            IEX.IexDarkUi.Apply(); // IEX: the window theme follows the profile
         }
 
         public static void SetProfileAsDefault(Profile profile)

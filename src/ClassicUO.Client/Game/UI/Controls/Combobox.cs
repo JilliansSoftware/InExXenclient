@@ -56,12 +56,12 @@ namespace ClassicUO.Game.UI.Controls
 
             bool unicode = isAsianLang;
             byte font1 = (byte)(isAsianLang ? 1 : _font);
-            bool dark = IEX.IexDarkUi.Active; // IEX: light Unicode text on the dark box
+            bool dark = IEX.IexDarkUi.Active; // IEX: themed windows - Unicode text in the theme color
 
             Add
             (
                 _label = dark
-                    ? new Label(initialText, true, IEX.IexDarkUi.ParchmentHue, font: 1, style: FontStyle.BlackBorder) { X = 4, Y = 4 }
+                    ? new Label(initialText, true, IEX.IexDarkUi.TextHue, font: 1, style: IEX.IexDarkUi.TextEdge) { X = 4, Y = 4 }
                     : new Label(initialText, unicode, 0x0453, font: font1) { X = 2, Y = 5 }
             );
 
@@ -207,17 +207,17 @@ namespace ClassicUO.Game.UI.Controls
                         item = string.Empty;
                     }
 
-                    bool dark = IEX.IexDarkUi.Active; // IEX: parchment, gold under the mouse
+                    bool dark = IEX.IexDarkUi.Active; // IEX: themed windows - text color, accent under the mouse
 
                     HoveredLabel label = new HoveredLabel
                     (
                         item,
                         dark || unicode,
-                        dark ? IEX.IexDarkUi.ParchmentHue : (ushort) 0x0453,
-                        dark ? IEX.IexDarkUi.GoldHue : (ushort) 0x0453,
-                        dark ? IEX.IexDarkUi.GoldHue : (ushort) 0x0453,
+                        dark ? IEX.IexDarkUi.TextHue : (ushort) 0x0453,
+                        dark ? IEX.IexDarkUi.AccentHue : (ushort) 0x0453,
+                        dark ? IEX.IexDarkUi.AccentHue : (ushort) 0x0453,
                         font: dark ? (byte) 1 : font1,
-                        style: dark ? FontStyle.BlackBorder : FontStyle.None
+                        style: dark ? IEX.IexDarkUi.TextEdge : FontStyle.None
                     )
                     {
                         X = 2,

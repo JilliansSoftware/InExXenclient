@@ -262,8 +262,9 @@ namespace ClassicUO.Configuration
         public bool OverrideAllFonts { get; set; }
         public bool OverrideAllFontsIsUnicode { get; set; } = true;
         public int IexTextScale { get; set; } = 100; // IEX: "Text size" percent, see IEX/IexText.cs
-        public bool IexDarkUi { get; set; } // IEX: dark windows, see IEX/IexDarkUi.cs
-        public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with dark windows), IEX/IexSkillsGump.cs
+        public int IexTheme { get; set; } = -1; // IEX: window theme, 0 original, 1 dark, 2 light (-1: not chosen, follow IexDarkUi), see IEX/IexDarkUi.cs
+        public bool IexDarkUi { get; set; } // IEX: the old dark windows switch, kept so earlier profiles keep their choice
+        public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with the dark or light theme), IEX/IexSkillsGump.cs
         public bool IexOutOfRangeReset { get; set; } // IEX: set once the old "gray out of range" default has been switched off
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
         public bool IexEnhancedWeather { get; set; } // IEX: rain streaks and splashes, storms, water glints, see IEX/IexWeather.cs

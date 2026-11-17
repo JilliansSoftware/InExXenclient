@@ -255,7 +255,9 @@ namespace ClassicUO.Game.UI.Gumps
             );
 
             // Virtue menu
-            Add(_virtueMenuPic = new GumpPic(80, 4, 0x0071, 0));
+            // IEX: the themed frames carry their own pentagram medallion; the button sits on it
+            var iexVirtue = IEX.IexDarkUi.VirtuePosition;
+            Add(_virtueMenuPic = new GumpPic(iexVirtue.X, iexVirtue.Y, 0x0071, 0));
             _virtueMenuPic.MouseDoubleClick += VirtueMenu_MouseDoubleClickEvent;
 
             // Equipment slots for hat/earrings/neck/ring/bracelet
@@ -312,15 +314,41 @@ namespace ClassicUO.Game.UI.Gumps
             }
 
             // Name and title
-            // IEX: on the dark frame the name is crisp Unicode gold with a black edge, inside the
-            // taller three-line nameplate with a margin under its top rim.
-            _titleLabel = IEX.IexDarkUi.Active
-                ? new Label("", true, IEX.IexDarkUi.GoldHue, 192, font: 0, style: FontStyle.BlackBorder) { X = 36, Y = 268 }
-                : new Label("", false, 0x0386, 185, font: 1) { X = 39, Y = 262 };
-
-            Add(_titleLabel);
+            // IEX: on the themed frame the name is crisp Unicode (gold with a black edge on dark,
+            // brown ink on light), inside the taller three-line nameplate with a margin under
+            // its top rim.
+            Add(_titleLabel = IexNewTitleLabel());
 
             RequestUpdateContents();
+        }
+
+        private static Label IexNewTitleLabel() => IEX.IexDarkUi.Active
+            ? new Label("", true, IEX.IexDarkUi.NameHue, 192, font: 0, style: IEX.IexDarkUi.TextEdge) { X = 36, Y = 268 }
+            : new Label("", false, 0x0386, 185, font: 1) { X = 39, Y = 262 };
+
+        /// <summary>
+        /// IEX: the window theme changed while this paperdoll was open. Move the virtue button
+        /// onto the new frame's medallion and restyle the name, which were placed for the old one.
+        /// </summary>
+        public void IexRetheme()
+        {
+            if (_virtueMenuPic != null)
+            {
+                var pos = IEX.IexDarkUi.VirtuePosition;
+                _virtueMenuPic.X = pos.X;
+                _virtueMenuPic.Y = pos.Y;
+            }
+
+            if (_titleLabel != null)
+            {
+                bool visible = _titleLabel.IsVisible;
+                _titleLabel.Dispose();
+                Add(_titleLabel = IexNewTitleLabel());
+                _titleLabel.IsVisible = visible;
+                UpdateTitle(_titleSource ?? "");
+            }
+
+            WantUpdateSize = true;
         }
 
         private void _picBase_MouseDoubleClick(object sender, MouseDoubleClickEventArgs e)
