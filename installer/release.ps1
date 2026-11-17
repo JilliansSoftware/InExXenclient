@@ -9,6 +9,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$Tag,
     [string]$Repo = 'JilliansSoftware/InExXenclient',
+    [string]$Branch = 'inexxen',     # the tag is made on this branch (main is clean upstream)
     [string]$PreviousManifest = '',   # URL or path; default = latest published release
     [string]$BaseUrl = '',            # testing: serve assets from e.g. http://127.0.0.1:8000
     [switch]$Publish
@@ -77,7 +78,7 @@ if (-not $token) { throw "No GitHub credential available" }
 $h = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json' }
 
 $body = @{
-    tag_name = $Tag; name = "In Ex Xen Client $($Tag.TrimStart('v'))"; draft = $true
+    tag_name = $Tag; target_commitish = $Branch; name = "In Ex Xen Client $($Tag.TrimStart('v'))"; draft = $true
     body = "**New players:** download ``InExXen-Setup.exe`` below and run it.`n**Existing players:** just start the game; it updates itself.`n`nTip: in Options, *Save current settings as defaults for new users* makes every new character start the way you set this one up.`n`nClient version $version."
 } | ConvertTo-Json
 $release = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$Repo/releases" -Headers $h -Body $body
