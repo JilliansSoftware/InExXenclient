@@ -738,7 +738,7 @@ namespace ClassicUO.Game.Managers
                                 case MacroSubType.Journal:
                                     if(ProfileManager.CurrentProfile.UseAlternateJournal)
                                     {
-                                        ResizableJournal rjournal = UIManager.GetGump<ResizableJournal>();
+                                        IEX.IexJournal rjournal = UIManager.GetGump<IEX.IexJournal>(); // IEX: was ResizableJournal
                                         if (macro.Code == MacroType.Close)
                                         {
                                             rjournal?.Dispose();

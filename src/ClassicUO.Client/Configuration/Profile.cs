@@ -577,7 +577,7 @@ namespace ClassicUO.Configuration
 
                                 case GumpType.Journal:
                                     if(ProfileManager.CurrentProfile.UseAlternateJournal)
-                                        gump = new ResizableJournal(world);
+                                        gump = new IEX.IexJournal(world); // IEX: was ResizableJournal
                                     else
                                         gump = new JournalGump(world);
 

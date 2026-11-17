@@ -109,7 +109,19 @@ namespace ClassicUO.Game
         {
             if (ProfileManager.CurrentProfile.UseAlternateJournal)
             {
-                UIManager.Add(new ResizableJournal(world));
+                // IEX: the shard's tabbed journal (search, text size, window theme); one at a time
+                IEX.IexJournal open = UIManager.GetGump<IEX.IexJournal>();
+
+                if (open == null)
+                {
+                    UIManager.Add(new IEX.IexJournal(world));
+                }
+                else
+                {
+                    open.SetInScreen();
+                    open.BringOnTop();
+                }
+
                 return;
             }
 

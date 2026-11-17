@@ -4244,6 +4244,11 @@ namespace ClassicUO.Game.UI.Gumps
                 {
                     journal.IexReload();
                 }
+
+                foreach (IEX.IexJournal journal in UIManager.Gumps.OfType<IEX.IexJournal>())
+                {
+                    journal.IexReload();
+                }
             }
 
             // IEX: window theme (windows already open keep their text color until reopened)
