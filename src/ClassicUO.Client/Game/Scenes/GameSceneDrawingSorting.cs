@@ -1205,7 +1205,7 @@ namespace ClassicUO.Game.Scenes
             int oldDrawOffsetY = _offset.Y;
             Point old_scaled_offset = _last_scaled_offset;
 
-            float zoom = Camera.Zoom;
+            float zoom = Math.Max(Camera.Zoom, Camera.ShownZoom); // IEX: while zooming in smoothly, keep drawing the wider area still on screen
 
             int winGamePosX = 0;
             int winGamePosY = 0;

@@ -183,7 +183,28 @@ namespace ClassicUO.Renderer
         {
             float zoom = 1f / Zoom;
 
-            _lerpZoom = zoom;
+            // IEX: glide to a new zoom level instead of jumping (about 0.2 s to settle).
+            float diff = zoom - _lerpZoom;
+
+            if (Math.Abs(diff) > 0.001f && _timeDelta > 0f)
+            {
+                _lerpZoom += diff * (1f - MathF.Exp(-_timeDelta * IEX_ZOOM_SPEED));
+            }
+            else
+            {
+                _lerpZoom = zoom;
+            }
+        }
+
+        // IEX: smooth zoom. ShownZoom is the zoom on screen while it glides toward Zoom.
+        private const float IEX_ZOOM_SPEED = 18f;
+
+        public float ShownZoom => 1f / _lerpZoom;
+
+        public void SnapZoom()
+        {
+            _lerpZoom = 1f / Zoom;
+            _updateMatrixes = true;
         }
 
         private void CalculatePeek(Vector2 origin)

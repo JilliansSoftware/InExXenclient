@@ -43,3 +43,19 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 - [x] Light spell and 4th circle Night Sight (2026-11-17): slot 6 of the magery book reads "Light"; a Light spell's glow on a mobile is drawn as a steady white round light from the server's reach (`IEX/IexLightRadius.cs`, mobiles forgotten when they leave view); Night Sight (spell 65) listed at the end of the 4th circle and given its own page when the server says the book holds it (`IEX/IexSpellbook.cs`, 0xBF/0xF0; `SpellbookGump.cs`, `SpellsMagery.cs`). Not yet tried in game.
 - [x] Circle of transparency no longer hides trees and rocks from tools (2026-11-17): while a neutral target cursor is up (axe, pickaxe; not spells), trees and rocks inside the circle can still be picked, including fully faded ones at its centre (`IexCotSelectable` in `GameSceneDrawingSorting.cs`). Not yet tried in game.
 - [ ] Phase 3 polish (soft shadows, sharp scaling, CRT filter) - proposed 2026-11-10
+## G. TazUO-style features (reviewed 2026-11-17)
+Kept:
+- [ ] 1. Health bars under creatures and players, plus name plates you can toggle (Options; off by default). B.3b brought back as an option.
+- [ ] 2. Modern journal: tabs and filters you set up yourself, can be resized.
+- [ ] 3. Modern shop window: buy and sell lists you can search.
+- [ ] 4. Compact health bars you can resize, with mana and stamina.
+- [ ] 5. Spell bar, plus a range circle or area preview while you cast or target.
+- [ ] 6. Lock or anchor windows in place; a key that hides the whole interface.
+- [ ] 7. Damage numbers you can style (colour, size, how they float).
+- [x] 8. Follow mode: already in stock ClassicUO (Alt + click a mobile; right-click stops it; stays within 3 tiles). No changes (2026-11-17).
+- [x] 9. Zoom the game view with the mouse wheel: stock Ctrl + wheel, now on for new characters (`IexDefaults`), and it glides instead of stepping (`Camera.CalculateLerpZoom`, `ShownZoom`, `SnapZoom`; hooks in `GameScene.Load`, `GameSceneDrawingSorting`). Built; not yet tried in game.
+- [ ] 10. Built-in scripting, limited: the server enforces the limits (no unattended loops); Razor stays. Decide the rules before building.
+- [ ] 11. Launcher window before the game (patch notes, links, picking a profile), built on the existing updater.
+- [ ] 12. Discord integration (shows status in Discord; maybe a chat bridge).
+- [ ] 13. Copy a profile (settings, layout, macros) from one character to another.
+Cut: grid containers (cut again), paperdoll durability readout and hidden layers, cooldown bars, auto-loot, durability tracker, tooltip overrides and item comparison (little to show on T2A), world map extras, login news (still tabled).

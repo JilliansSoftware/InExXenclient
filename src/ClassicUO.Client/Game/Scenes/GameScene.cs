@@ -100,6 +100,7 @@ namespace ClassicUO.Game.Scenes
             Client.Game.Window.AllowUserResizing = true;
 
             Camera.Zoom = ProfileManager.CurrentProfile.DefaultScale;
+            Camera.SnapZoom(); // IEX: start at the saved zoom, no glide on login
             Camera.Bounds.X = Math.Max(0, ProfileManager.CurrentProfile.GameWindowPosition.X);
             Camera.Bounds.Y = Math.Max(0, ProfileManager.CurrentProfile.GameWindowPosition.Y);
             Camera.Bounds.Width = Math.Max(0, ProfileManager.CurrentProfile.GameWindowSize.X);
