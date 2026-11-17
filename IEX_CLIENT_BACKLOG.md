@@ -45,7 +45,7 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 - [ ] Phase 3 polish (soft shadows, sharp scaling, CRT filter) - proposed 2026-11-10
 ## G. TazUO-style features (reviewed 2026-11-17)
 Kept:
-- [ ] 1. Health bars under creatures and players, plus name plates you can toggle (Options; off by default). B.3b brought back as an option.
+- [x] 1. Health bars under creatures and players, plus name plates you can toggle (Options; off by default). B.3b brought back as an option. Already in stock ClassicUO: Options > General "Show HP" (percentage / line / both; always / when damaged) and name plates with "Show HP bar". No changes (2026-11-17).
 - [ ] 2. Modern journal: tabs and filters you set up yourself, can be resized.
 - [ ] 3. Modern shop window: buy and sell lists you can search.
 - [ ] 4. Compact health bars you can resize, with mana and stamina.
