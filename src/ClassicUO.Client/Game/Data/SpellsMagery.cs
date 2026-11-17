@@ -88,7 +88,7 @@ namespace ClassicUO.Game.Data
                     6,
                     new SpellDefinition
                     (
-                        "Night Sight",
+                        "Light", // IEX: Night Sight's slot holds Light; Night Sight is 4th circle (IEX/IexSpellbook.cs)
                         6,
                         0x1B5D,
                         "In Lor",
@@ -947,6 +947,11 @@ namespace ClassicUO.Game.Data
 
         public static SpellDefinition GetSpell(int index)
         {
+            if (index == IEX.IexSpellbook.NightSightIndex)
+            {
+                return IEX.IexSpellbook.NightSight; // IEX
+            }
+
             return _spellsDict.TryGetValue(index, out SpellDefinition spell) ? spell : SpellDefinition.EmptySpell;
         }
 

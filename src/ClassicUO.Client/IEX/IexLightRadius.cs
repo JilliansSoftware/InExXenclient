@@ -1,4 +1,5 @@
-// IEX: how far each light reaches, as the server says (ModernUO: Custom/IEX/LightRadii.cs).
+// IEX: how far each light reaches, as the server says (ModernUO: Custom/IEX/Lights/LightRadii.cs):
+// lamps, and anyone glowing with a Light spell (Custom/IEX/Lights/MagicLight.cs).
 // Lights are a commodity on In Ex Xen: a torch lights more than a lantern, a lantern more than a
 // candle, and staff can give any light its own reach. The game scene asks for the reach of each
 // lit item it draws; unknown serials are batched into one request a frame (0xBF sub-command 0xEF:
@@ -91,6 +92,15 @@ namespace ClassicUO.IEX
                 uint serial = p.ReadUInt32BE();
                 _radii[serial] = p.ReadUInt8();
                 _asked.Add(serial);
+            }
+        }
+
+        /// <summary>Forgets one serial, so it is asked about again when seen again.</summary>
+        public static void Forget(uint serial)
+        {
+            if (_radii.Remove(serial) | _asked.Remove(serial))
+            {
+                _pending.Remove(serial);
             }
         }
 

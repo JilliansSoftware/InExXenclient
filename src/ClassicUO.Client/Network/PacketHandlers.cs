@@ -4151,6 +4151,11 @@ namespace ClassicUO.Network
 
                 //===========================================================================================
                 //===========================================================================================
+                case 0xF0: // IEX: Night Sight in a spellbook (IEX/IexSpellbook.cs)
+                    IEX.IexSpellbook.OnPacket(ref p);
+
+                    break;
+
                 case 0xEF: // IEX: how far lights reach (IEX/IexLightRadius.cs)
                     IEX.IexLightRadius.OnPacket(ref p);
 

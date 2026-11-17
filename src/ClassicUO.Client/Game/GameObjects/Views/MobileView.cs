@@ -47,6 +47,17 @@ namespace ClassicUO.Game.GameObjects
             drawX += 22;
             drawY += 22;
 
+            // IEX: a Light spell's glow moves with its target (IEX/IexLightRadius.cs)
+            if (IEX.IexLighting.On)
+            {
+                byte glow = IEX.IexLightRadius.Get(Serial);
+
+                if (glow > 0)
+                {
+                    Client.Game.GetScene<GameScene>().IexAddGlow(drawX, drawY - 20, glow);
+                }
+            }
+
             bool hasShadow = !IsDead && !IsHidden && ProfileManager.CurrentProfile.ShadowsEnabled;
 
             if (World.AuraManager.IsEnabled)

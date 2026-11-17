@@ -26,7 +26,7 @@ namespace ClassicUO.Game.UI.Gumps
             _pageCornerRight,
             _picBase;
         private SpellBookType _spellBookType;
-        private readonly bool[] _spells = new bool[64];
+        private readonly bool[] _spells = new bool[65]; // IEX: 65th = Night Sight (IEX/IexSpellbook.cs)
         private int _enqueuePage = -1;
 
         public SpellbookGump(World world, uint item) : this(world)
@@ -209,6 +209,15 @@ namespace ClassicUO.Game.UI.Gumps
                     _spells[currentCount - 1] = true;
                     totalSpells++;
                 }
+            }
+
+            // IEX: Night Sight, held outside the 64 slots, listed at the end of the 4th circle
+            bool iexNightSight = _spellBookType == SpellBookType.Magery && IEX.IexSpellbook.HasNightSight(LocalSerial);
+            _spells[64] = iexNightSight;
+
+            if (iexNightSight)
+            {
+                totalSpells++;
             }
 
             int pagesToFill =
@@ -524,6 +533,44 @@ namespace ClassicUO.Game.UI.Gumps
                                 y += 15;
                             }
                         }
+
+                        // IEX: Night Sight closes the 4th circle
+                        if (iexNightSight && (page - 1) * 2 + j % 2 == 3)
+                        {
+                            GetSpellNames(64, out string name, out _, out _);
+
+                            if (spellDone % 2 == 0)
+                            {
+                                topage++;
+                            }
+
+                            spellDone++;
+
+                            text = new HoveredLabel(
+                                name,
+                                false,
+                                0x0288,
+                                0x33,
+                                0x0288,
+                                font: 9,
+                                maxwidth: 130,
+                                style: FontStyle.Cropped
+                            )
+                            {
+                                X = dataX,
+                                Y = 52 + y,
+                                LocalSerial = (uint)topage,
+                                AcceptMouseInput = true,
+                                Tag = IEX.IexSpellbook.NightSightIndex,
+                                CanMove = true
+                            };
+
+                            text.MouseUp += OnLabelMouseUp;
+                            text.MouseDoubleClick += OnLabelMouseDoubleClick;
+                            _dataBox.Add(text, page);
+
+                            y += 15;
+                        }
                     }
                 }
             }
@@ -531,8 +578,13 @@ namespace ClassicUO.Game.UI.Gumps
             int page1 = pagesToFill + 1;
             int topTextY = 6;
 
-            for (int i = 0, spellsDone = 0; i < maxSpellsCount; i++)
+            // IEX: Night Sight's page comes right after the 4th circle, where the index lists it
+            int detailCount = iexNightSight ? maxSpellsCount + 1 : maxSpellsCount;
+
+            for (int n = 0, spellsDone = 0; n < detailCount; n++)
             {
+                int i = !iexNightSight || n < 32 ? n : n == 32 ? 64 : n - 1;
+
                 if (!_spells[i])
                 {
                     continue;
@@ -567,7 +619,7 @@ namespace ClassicUO.Game.UI.Gumps
                     case SpellBookType.Magery:
                     {
                         Label text = new Label(
-                            SpellsMagery.CircleNames[i >> 3],
+                            SpellsMagery.CircleNames[i == 64 ? 3 : i >> 3], // IEX: Night Sight is 4th circle
                             false,
                             0x0288,
                             font: 6
@@ -680,8 +732,14 @@ namespace ClassicUO.Game.UI.Gumps
                 }
                 else
                 {
-                    iconGraphic = (ushort)(iconStartGraphic + i);
+                    // IEX: Night Sight keeps its icon and its description; Light (its old slot) has neither
+                    iconGraphic = (ushort)(iconStartGraphic + (i == 64 ? 5 : i));
                     GetSpellToolTip(out toolTipCliloc);
+
+                    if (_spellBookType == SpellBookType.Magery && i == 5)
+                    {
+                        toolTipCliloc = 0;
+                    }
                 }
 
                 var spellDef = GetSpellDefinition(iconSerial);
@@ -702,7 +760,7 @@ namespace ClassicUO.Game.UI.Gumps
 
                 if (toolTipCliloc > 0)
                 {
-                    string tooltip = Client.Game.UO.FileManager.Clilocs.GetString(toolTipCliloc + i);
+                    string tooltip = Client.Game.UO.FileManager.Clilocs.GetString(toolTipCliloc + (i == 64 ? 5 : i));
                     icon.SetTooltip(tooltip, 250);
                 }
 
@@ -1031,7 +1089,7 @@ namespace ClassicUO.Game.UI.Gumps
                 case SpellBookType.Magery:
                     SpellDefinition def = SpellsMagery.GetSpell(offset + 1);
                     name = def.Name;
-                    abbreviature = SpellsMagery.SpecialReagentsChars[offset];
+                    abbreviature = offset < SpellsMagery.SpecialReagentsChars.Length ? SpellsMagery.SpecialReagentsChars[offset] : def.PowerWords; // IEX: Night Sight
                     reagents = def.CreateReagentListString("\n");
 
                     break;

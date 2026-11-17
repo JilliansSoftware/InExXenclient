@@ -587,6 +587,8 @@ namespace ClassicUO.Game.Scenes
                     obj.AlphaHue = GetGradientCotAlpha(obj);
                     if (obj.AlphaHue > 0)
                         PushToRenderQueue(obj, true, allowSelection);
+                    else
+                        TrySelectObject(obj, allowSelection && IexCotSelectable(obj)); // IEX
                     return 0;
                 }
 
@@ -598,7 +600,7 @@ namespace ClassicUO.Game.Scenes
                     AddLight(obj, obj, obj.RealScreenPosition.X + 22, obj.RealScreenPosition.Y + 22);
                 }
 
-                if (allowSelection && !(cot && IsMouseInsideCotCircle()) && obj.AllowedToDraw && obj.CheckMouseSelection())
+                if (allowSelection && !(cot && IsMouseInsideCotCircle() && !IexCotSelectable(obj)) && obj.AllowedToDraw && obj.CheckMouseSelection())
                 {
                     if (SelectedObject.Object is GameObject prev)
                     {
@@ -623,6 +625,8 @@ namespace ClassicUO.Game.Scenes
                 obj.AlphaHue = GetGradientCotAlpha(obj);
                 if (obj.AlphaHue > 0)
                     PushToRenderQueue(obj, true, allowSelection);
+                else
+                    TrySelectObject(obj, allowSelection && IexCotSelectable(obj)); // IEX
                 return 0;
             }
 
@@ -686,6 +690,15 @@ namespace ClassicUO.Game.Scenes
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // IEX: the circle of transparency lets clicks through to what is behind, which left trees and
+        // rocks next to you out of reach of an axe or pickaxe. A tool's target cursor (neutral, unlike
+        // a spell's) still picks trees and rocks inside the circle.
+        private bool IexCotSelectable(GameObject obj) =>
+            _world.TargetManager.IsTargeting
+            && _world.TargetManager.TargetingType == TargetType.Neutral
+            && obj is Static st
+            && (StaticFilters.IsTree(st.Graphic, out _) || StaticFilters.IsRock(st.Graphic));
+
         private bool IsMouseInsideCotCircle()
         {
             if (_cotRadiusSq <= 0)
@@ -727,7 +740,8 @@ namespace ClassicUO.Game.Scenes
                 && obj.AllowedToDraw
                 && !(ProfileManager.CurrentProfile.UseCircleOfTransparency
                     && obj.TransparentTest(_world.Player.Z + 5)
-                    && IsMouseInsideCotCircle())
+                    && IsMouseInsideCotCircle()
+                    && !IexCotSelectable(obj))
                 && obj.CheckMouseSelection()
             )
             {
@@ -891,6 +905,8 @@ namespace ClassicUO.Game.Scenes
                         obj.AlphaHue = GetGradientCotAlpha(obj);
                         if (obj.AlphaHue > 0)
                             PushToRenderQueue(obj, true, meshAllowSelection);
+                        else
+                            TrySelectObject(obj, meshAllowSelection && IexCotSelectable(obj)); // IEX
                         continue;
                     }
 
@@ -902,7 +918,7 @@ namespace ClassicUO.Game.Scenes
                         AddLight(obj, obj, obj.RealScreenPosition.X + 22, obj.RealScreenPosition.Y + 22);
                     }
 
-                    TrySelectObject(obj, meshAllowSelection && !(meshCot && IsMouseInsideCotCircle()));
+                    TrySelectObject(obj, meshAllowSelection && !(meshCot && IsMouseInsideCotCircle() && !IexCotSelectable(obj)));
                     continue;
                 }
 

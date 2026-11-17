@@ -596,6 +596,25 @@ namespace ClassicUO.Game.Scenes
             light.IexTiles = 0;
         }
 
+        // IEX: the glow of a Light spell on a mobile: a steady white round light reaching this many tiles
+        public void IexAddGlow(int x, int y, byte tiles)
+        {
+            if (_lightCount >= LightsLoader.MAX_LIGHTS_DATA_INDEX_COUNT || !IEX.IexLighting.On || !UseLights || UseAltLights)
+            {
+                return;
+            }
+
+            ref LightData light = ref _lights[_lightCount++];
+            light.ID = 1;
+            light.Color = 0;
+            light.IsHue = false;
+            light.DrawX = x;
+            light.DrawY = y;
+            light.IexSeed = 0;
+            light.IexScale = 1f;
+            light.IexTiles = tiles;
+        }
+
         private void FillGameObjectList()
         {
             _renderLists.Clear();

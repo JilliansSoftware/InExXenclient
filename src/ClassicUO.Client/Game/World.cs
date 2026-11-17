@@ -536,6 +536,7 @@ namespace ClassicUO.Game
             }
 
             OPL.Remove(serial);
+            IEX.IexLightRadius.Forget(serial); // IEX: asked again when seen again
             item.Destroy();
 
             if (forceRemove)
@@ -567,6 +568,7 @@ namespace ClassicUO.Game
             }
 
             OPL.Remove(serial);
+            IEX.IexLightRadius.Forget(serial); // IEX: a Light spell may have started or ended out of sight
             mobile.Destroy();
 
             if (forceRemove)
@@ -778,6 +780,7 @@ namespace ClassicUO.Game
         public void Clear()
         {
             IEX.IexLightRadius.Clear(); // IEX
+            IEX.IexSpellbook.Clear(); // IEX
             foreach (Mobile mobile in Mobiles.Values)
             {
                 RemoveMobile(mobile);
