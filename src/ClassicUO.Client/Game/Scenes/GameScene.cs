@@ -538,6 +538,12 @@ namespace ClassicUO.Game.Scenes
                 // IEX: enhanced lighting - plain lights burn warm, and fire flickers
                 light.IexSeed = 0;
                 light.IexScale = 1f;
+                light.IexTiles = 0;
+
+                if (IEX.IexLighting.On && !UseAltLights && (obj == lightObject ? obj : lightObject) is Item lightItem)
+                {
+                    light.IexTiles = IEX.IexLightRadius.Get(lightItem.Serial); // the server's reach for this light
+                }
 
                 if (IEX.IexLighting.On && !UseAltLights && ProfileManager.CurrentProfile.UseColoredLights)
                 {
@@ -587,6 +593,7 @@ namespace ClassicUO.Game.Scenes
             light.DrawY = y;
             light.IexSeed = IEX.IexLighting.Seed(0, worldX, worldY);
             light.IexScale = scale;
+            light.IexTiles = 0;
         }
 
         private void FillGameObjectList()
@@ -1152,8 +1159,19 @@ namespace ClassicUO.Game.Scenes
                         out renderTargets.IexLighting.Saturation,
                         out renderTargets.IexLighting.Vignette
                     );
-                    batcher.GraphicsDevice.Clear(ClearOptions.Target, new Vector4(ambient, 1), 0f, 0);
+                    // the light map holds light at half strength, so lights can go brighter than the art
+                    batcher.GraphicsDevice.Clear(
+                        ClearOptions.Target,
+                        new Vector4(ambient * Renderer.IEX.IexLightingPass.LightScale, 1),
+                        0f,
+                        0
+                    );
                     renderTargets.IexLighting.Ambient = ambient;
+                    IEX.IexLighting.Atmosphere(
+                        ambient,
+                        out renderTargets.IexLighting.HazeStrength,
+                        out renderTargets.IexLighting.BloomStrength
+                    );
                     renderTargets.IexLighting.Requested = true;
                 }
             }
@@ -1188,11 +1206,17 @@ namespace ClassicUO.Game.Scenes
                             : ShaderHueTranslator.SHADER_LIGHTS
                         : ShaderHueTranslator.SHADER_NONE;
 
+                if (iexLighting && !l.IsHue && IEX.IexLighting.IsRound(l.ID))
+                {
+                    continue; // IEX: round lights are drawn by the lighting shader, below
+                }
+
                 if (iexLighting && l.IexSeed != 0)
                 {
                     // IEX: fire light breathes a little, about its own centre
                     IEX.IexLighting.Flicker(l.IexSeed, out float scale, out hue.Z);
                     scale *= l.IexScale;
+                    hue.Z *= Renderer.IEX.IexLightingPass.LightScale;
 
                     batcher.Draw(
                         lightInfo.Texture,
@@ -1211,6 +1235,8 @@ namespace ClassicUO.Game.Scenes
                     continue;
                 }
 
+                hue.Z = iexLighting ? Renderer.IEX.IexLightingPass.LightScale : 1f; // IEX
+
                 batcher.Draw(
                     lightInfo.Texture,
                     new Vector2(
@@ -1221,9 +1247,9 @@ namespace ClassicUO.Game.Scenes
                     hue,
                     0f
                 );
-            }
 
-            _lightCount = 0;
+                hue.Z = 1f;
+            }
 
             if (iexLighting)
             {
@@ -1232,6 +1258,50 @@ namespace ClassicUO.Game.Scenes
 
             batcher.SetBlendState(null);
             batcher.End();
+
+            // IEX: round lights as a bright core with a long, smooth tail, reaching as far as the
+            // server says (IEX/IexLightRadius.cs) or a little past twice the stock sprite
+            if (iexLighting && renderTargets.IexLighting.BeginLights(batcher, matrix))
+            {
+                for (int i = 0; i < _lightCount; i++)
+                {
+                    ref LightData l = ref _lights[i];
+
+                    if (l.IsHue || !IEX.IexLighting.IsRound(l.ID))
+                    {
+                        continue;
+                    }
+
+                    ref readonly var lightInfo = ref Client.Game.UO.Lights.GetLight(l.ID);
+
+                    if (lightInfo.Texture == null)
+                    {
+                        continue;
+                    }
+
+                    float scale = 1f, strength = 1f;
+
+                    if (l.IexSeed != 0)
+                    {
+                        IEX.IexLighting.Flicker(l.IexSeed, out scale, out strength);
+                    }
+
+                    float radius = IEX.IexLighting.Radius(l.IexTiles, lightInfo.UV.Width) * scale * l.IexScale;
+
+                    renderTargets.IexLighting.DrawLight(
+                        batcher,
+                        new Vector2(l.DrawX, l.DrawY),
+                        radius,
+                        l.Color,
+                        IEX.IexLighting.Peak * strength
+                    );
+                }
+
+                renderTargets.IexLighting.EndLights(batcher);
+            }
+
+            IEX.IexLightRadius.Flush();
+            _lightCount = 0;
 
             batcher.GraphicsDevice.SetRenderTarget(null);
 
@@ -1377,6 +1447,7 @@ namespace ClassicUO.Game.Scenes
                 DrawY;
             public ushort IexSeed; // IEX: flicker seed for fire light, 0 = steady
             public float IexScale; // IEX: size of the light, 1 = the sprite at its own size
+            public byte IexTiles; // IEX: the server's reach for this light in tiles, 0 = our default
         }
     }
 }

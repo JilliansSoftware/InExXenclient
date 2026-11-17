@@ -1,6 +1,8 @@
 // IEX: enhanced lighting. Lays the light map over the world picture with a shader
-// (shaders/IexLighting.fx) instead of the stock multiply blend: softened light edges and a
-// glow around bright cores. The game scene asks for it each frame (Requested); RenderTargets
+// (shaders/IexLighting.fx) instead of the stock multiply blend: softened light edges, a glow
+// around bright cores, haze in the air around lights and bloom on the brightest parts. Round
+// light sources are drawn into the light map by the shader too (BeginLights / DrawLight), with a
+// long smooth tail. The light map holds light at half strength (LightScale) so it can go past 1. The game scene asks for it each frame (Requested); RenderTargets
 // draws it. If the shader cannot be loaded on this machine the stock lighting is used.
 
 using System;
@@ -15,6 +17,11 @@ namespace ClassicUO.Renderer.IEX
         private IexLightingEffect _effect;
         private bool _failed;
         private RenderTarget2D _blurA, _blurB;
+        private RenderTarget2D _bloomA, _bloomB;
+        private Texture2D _disc;
+
+        /// <summary>The light map holds real light times this, so light can reach 1 / LightScale.</summary>
+        public const float LightScale = 0.5f;
 
         /// <summary>Set by the game scene for the frame being drawn; cleared once drawn.</summary>
         public bool Requested;
@@ -23,7 +30,17 @@ namespace ClassicUO.Renderer.IEX
         public Vector3 Ambient;
 
         public float Soften = 0.5f;
-        public float GlowStrength = 0.35f;
+        public float GlowStrength = 0.2f;
+
+        /// <summary>Light seen in the air around light sources; scaled by how dark it is.</summary>
+        public float HazeStrength;
+
+        /// <summary>How much bloom is added back (0 = no bloom pass at all), and where it starts.</summary>
+        public float BloomStrength;
+        public float BloomThreshold = 0.8f;
+
+        /// <summary>How fast a round light's tail falls (higher = brighter core, thinner tail).</summary>
+        public float Falloff = 12f;
 
         /// <summary>Colour balance, colour strength and edge darkening of the finished picture.</summary>
         public Vector3 GradeTint = Vector3.One;
@@ -32,27 +49,17 @@ namespace ClassicUO.Renderer.IEX
 
         public bool Available => !_failed;
 
+        private bool _bloomReady;
+
         /// <summary>Blurs the light map into a half size copy. Call with no render target set and outside a batch.</summary>
-        public bool Prepare(UltimaBatcher2D batcher, RenderTarget2D light)
+        public bool Prepare(UltimaBatcher2D batcher, RenderTarget2D world, RenderTarget2D light)
         {
-            if (_failed || light == null || light.IsDisposed)
+            if (light == null || light.IsDisposed || !EnsureEffect(batcher.GraphicsDevice))
             {
                 return false;
             }
 
             GraphicsDevice device = batcher.GraphicsDevice;
-
-            try
-            {
-                _effect ??= new IexLightingEffect(device);
-            }
-            catch (Exception e)
-            {
-                _failed = true;
-                Log.Warn("IEX: enhanced lighting is off, the shader did not load: " + e.Message);
-
-                return false;
-            }
 
             int w = Math.Max(1, light.Width / 2);
             int h = Math.Max(1, light.Height / 2);
@@ -66,6 +73,32 @@ namespace ClassicUO.Renderer.IEX
             BlurInto(batcher, _blurA, _blurB, new Vector2(0f, 1f / h));
             BlurInto(batcher, _blurB, _blurA, new Vector2(2f / w, 0f));
             BlurInto(batcher, _blurA, _blurB, new Vector2(0f, 2f / h));
+
+            _bloomReady = false;
+
+            if (BloomStrength > 0f && world != null && !world.IsDisposed)
+            {
+                // bloom: the brightest parts of the lit picture at quarter size, blurred wide
+                int bw = Math.Max(1, light.Width / 4);
+                int bh = Math.Max(1, light.Height / 4);
+                EnsureSize(device, ref _bloomA, bw, bh);
+                EnsureSize(device, ref _bloomB, bw, bh);
+
+                _effect.CurrentTechnique = _effect.Bright;
+                _effect.WorldTexel.SetValue(new Vector2(1f / world.Width, 1f / world.Height));
+                _effect.BloomThreshold.SetValue(BloomThreshold);
+                device.Textures[4] = light;
+                device.SamplerStates[4] = SamplerState.LinearClamp;
+                BlurInto(batcher, world, _bloomA, Vector2.Zero);
+                device.Textures[4] = null;
+
+                _effect.CurrentTechnique = _effect.Blur;
+                BlurInto(batcher, _bloomA, _bloomB, new Vector2(1f / bw, 0f));
+                BlurInto(batcher, _bloomB, _bloomA, new Vector2(0f, 1f / bh));
+                BlurInto(batcher, _bloomA, _bloomB, new Vector2(2f / bw, 0f));
+                BlurInto(batcher, _bloomB, _bloomA, new Vector2(0f, 2f / bh));
+                _bloomReady = true;
+            }
 
             device.SetRenderTarget(null);
 
@@ -82,6 +115,8 @@ namespace ClassicUO.Renderer.IEX
             _effect.Ambient.SetValue(Ambient);
             _effect.Soften.SetValue(Soften);
             _effect.GlowStrength.SetValue(GlowStrength);
+            _effect.HazeStrength.SetValue(HazeStrength);
+            _effect.BloomStrength.SetValue(_bloomReady ? BloomStrength : 0f);
             _effect.LightMapSize.SetValue(new Vector2(light.Width, light.Height));
             _effect.GradeTint.SetValue(GradeTint);
             _effect.Saturation.SetValue(Saturation);
@@ -89,8 +124,10 @@ namespace ClassicUO.Renderer.IEX
 
             device.Textures[4] = light;
             device.Textures[5] = _blurB;
+            device.Textures[6] = _bloomReady ? _bloomA : _blurB; // unused when there is no bloom, but bound
             device.SamplerStates[4] = SamplerState.LinearClamp;
             device.SamplerStates[5] = SamplerState.LinearClamp;
+            device.SamplerStates[6] = SamplerState.LinearClamp;
 
             batcher.Begin(_effect);
             batcher.SetSampler(worldSampler);
@@ -101,6 +138,85 @@ namespace ClassicUO.Renderer.IEX
             // the light map is drawn into again next frame: it must not stay bound as a texture
             device.Textures[4] = null;
             device.Textures[5] = null;
+            device.Textures[6] = null;
+        }
+
+        /// <summary>
+        /// Starts drawing round lights into the light map (its render target already set).
+        /// <paramref name="transform"/> is the world's zoom matrix. False if the shader is not
+        /// available: draw the stock sprites instead.
+        /// </summary>
+        public bool BeginLights(UltimaBatcher2D batcher, Matrix transform)
+        {
+            if (!EnsureEffect(batcher.GraphicsDevice))
+            {
+                return false;
+            }
+
+            if (_disc == null || _disc.IsDisposed)
+            {
+                _disc = new Texture2D(batcher.GraphicsDevice, 4, 4);
+                Color[] white = new Color[16];
+                Array.Fill(white, Color.White);
+                _disc.SetData(white);
+            }
+
+            _effect.CurrentTechnique = _effect.Light;
+            _effect.Falloff.SetValue(Falloff);
+            SetProjection(batcher.GraphicsDevice, transform);
+
+            batcher.Begin(_effect);
+            batcher.SetBlendState(BlendState.Additive);
+
+            return true;
+        }
+
+        /// <summary>
+        /// One round light, between BeginLights and EndLights: centre and radius in world pixels
+        /// (before zoom), row of the light colour table plus 1 (as the stock light hue; 0 = white)
+        /// and strength in real light (1 = as bright as the stock sprite's centre).
+        /// </summary>
+        public void DrawLight(UltimaBatcher2D batcher, Vector2 centre, float radius, ushort colorRow, float strength)
+        {
+            batcher.Draw(
+                _disc,
+                centre,
+                null,
+                new Vector3(colorRow, 0f, strength),
+                0f,
+                new Vector2(_disc.Width * 0.5f, _disc.Height * 0.5f),
+                radius * 2f / _disc.Width,
+                SpriteEffects.None,
+                0f
+            );
+        }
+
+        public void EndLights(UltimaBatcher2D batcher)
+        {
+            batcher.SetBlendState(null);
+            batcher.End();
+        }
+
+        private bool EnsureEffect(GraphicsDevice device)
+        {
+            if (_failed)
+            {
+                return false;
+            }
+
+            try
+            {
+                _effect ??= new IexLightingEffect(device);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                _failed = true;
+                Log.Warn("IEX: enhanced lighting is off, the shader did not load: " + e.Message);
+
+                return false;
+            }
         }
 
         private void BlurInto(UltimaBatcher2D batcher, Texture2D source, RenderTarget2D target, Vector2 step)
@@ -121,7 +237,9 @@ namespace ClassicUO.Renderer.IEX
         }
 
         // The batcher only feeds its own shader: ours needs the same screen projection.
-        private void SetProjection(GraphicsDevice device)
+        private void SetProjection(GraphicsDevice device) => SetProjection(device, Matrix.Identity);
+
+        private void SetProjection(GraphicsDevice device, Matrix transform)
         {
             Viewport viewport = device.Viewport;
 
@@ -135,7 +253,7 @@ namespace ClassicUO.Renderer.IEX
                 out Matrix matrix
             );
 
-            _effect.MatrixTransform.SetValue(matrix);
+            _effect.MatrixTransform.SetValue(transform * matrix);
             _effect.Viewport.SetValue(new Vector2(viewport.Width, viewport.Height));
         }
 
@@ -159,12 +277,19 @@ namespace ClassicUO.Renderer.IEX
             Ambient = Parameters["Ambient"];
             Soften = Parameters["Soften"];
             GlowStrength = Parameters["GlowStrength"];
+            HazeStrength = Parameters["HazeStrength"];
+            BloomStrength = Parameters["BloomStrength"];
+            BloomThreshold = Parameters["BloomThreshold"];
+            WorldTexel = Parameters["WorldTexel"];
+            Falloff = Parameters["Falloff"];
             LightMapSize = Parameters["LightMapSize"];
             GradeTint = Parameters["GradeTint"];
             Saturation = Parameters["Saturation"];
             Vignette = Parameters["Vignette"];
 
+            Light = Techniques["Light"];
             Blur = Techniques["Blur"];
+            Bright = Techniques["Bright"];
             Composite = Techniques["Composite"];
         }
 
@@ -174,6 +299,13 @@ namespace ClassicUO.Renderer.IEX
         public EffectParameter Ambient { get; }
         public EffectParameter Soften { get; }
         public EffectParameter GlowStrength { get; }
+        public EffectParameter HazeStrength { get; }
+        public EffectParameter BloomStrength { get; }
+        public EffectParameter BloomThreshold { get; }
+        public EffectParameter WorldTexel { get; }
+        public EffectParameter Falloff { get; }
+        public EffectTechnique Light { get; }
+        public EffectTechnique Bright { get; }
         public EffectParameter LightMapSize { get; }
         public EffectParameter GradeTint { get; }
         public EffectParameter Saturation { get; }

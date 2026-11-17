@@ -777,6 +777,7 @@ namespace ClassicUO.Game
 
         public void Clear()
         {
+            IEX.IexLightRadius.Clear(); // IEX
             foreach (Mobile mobile in Mobiles.Values)
             {
                 RemoveMobile(mobile);

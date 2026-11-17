@@ -4151,6 +4151,11 @@ namespace ClassicUO.Network
 
                 //===========================================================================================
                 //===========================================================================================
+                case 0xEF: // IEX: how far lights reach (IEX/IexLightRadius.cs)
+                    IEX.IexLightRadius.OnPacket(ref p);
+
+                    break;
+
                 case 1: // fast walk prevention
                     for (int i = 0; i < 6; i++)
                     {

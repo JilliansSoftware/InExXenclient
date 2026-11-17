@@ -26,6 +26,34 @@ namespace ClassicUO.IEX
 
         public static bool On => ProfileManager.CurrentProfile != null && ProfileManager.CurrentProfile.IexEnhancedLighting;
 
+        /// <summary>Brightest a round light gets at its centre (1 = the stock sprite's centre).</summary>
+        public const float Peak = 1.5f;
+
+        /// <summary>Round lights with no reach from the server reach this many times the stock sprite's radius.</summary>
+        public const float Reach = 2.0f;
+
+        /// <summary>Screen pixels per tile of reach (a tile step is about 31 pixels on screen).</summary>
+        public const float TilePixels = 32f;
+
+        /// <summary>The stock light sprites that are plain circles: these get the long-tailed light.</summary>
+        public static bool IsRound(byte id) => id == 1 || id == 2 || id == 29 || id == 49;
+
+        /// <summary>A round light's radius in world pixels: the server's reach, else twice the stock sprite.</summary>
+        public static float Radius(byte tiles, int spriteWidth) =>
+            tiles > 0 ? tiles * TilePixels : spriteWidth * 0.5f * Reach;
+
+        /// <summary>
+        /// Haze in the air and bloom, by how dark it is: none by day, full underground.
+        /// </summary>
+        public static void Atmosphere(Vector3 ambient, out float haze, out float bloom)
+        {
+            float luma = ambient.X * 0.2126f + ambient.Y * 0.7152f + ambient.Z * 0.0722f;
+            float dark = Math.Clamp((0.7f - luma) / 0.6f, 0f, 1f);
+
+            haze = 0.3f * dark * dark;
+            bloom = 0.55f * dark;
+        }
+
         // Darkness colour by the world's light level (0 = day ... 30 = black), before brightness:
         // a warm cast while the sun is low, deep blue at night, a colder blue-grey underground.
         // ModernUO sends 0 by day, 12 at night and 26 in dungeons, and steps between at dusk and dawn.

@@ -97,7 +97,7 @@ namespace ClassicUO.Renderer
         public void Draw(UltimaBatcher2D batcher)
         {
             // IEX: enhanced lighting blurs the light map before anything is drawn to the screen
-            bool iexLighting = IexLighting.Requested && IexLighting.Prepare(batcher, LightRenderTarget);
+            bool iexLighting = IexLighting.Requested && IexLighting.Prepare(batcher, WorldRenderTarget, LightRenderTarget);
             IexLighting.Requested = false;
 
             // draw world
