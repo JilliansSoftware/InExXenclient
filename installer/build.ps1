@@ -1,8 +1,9 @@
 # Builds installer\output\InExXen-Setup.exe from this repo.
 #   powershell -ExecutionPolicy Bypass -File installer\build.ps1 [-UODir "C:\Program Files\Ultima Online 2D"]
 # Steps: compile the client (Bootstrap exe + NativeAOT cuo.dll), download Razor CE,
-# copy UO data from a reference install (read only, never modified), compile InExXen.iss.
-# Needs: .NET 10 SDK, VS C++ build tools (for NativeAOT), Inno Setup 6.
+# copy UO data from a reference install (read only, never modified), compile InExXen.iss,
+# then build-unix.ps1 for the Linux/macOS packages.
+# Needs: .NET 10 SDK, VS C++ build tools (for NativeAOT), Inno Setup 6, Python 3.
 param(
     [string]$UODir = "C:\Program Files\Ultima Online 2D",
     [string]$Iscc = "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
@@ -64,3 +65,6 @@ Copy-Item "$UODir\music\digital\*" "$stage\UO\Music\Digital"
 & $Iscc /Q (Join-Path $here 'InExXen.iss')
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed ($LASTEXITCODE)" }
 Get-Item (Join-Path $here 'output\InExXen-Setup.exe') | Select-Object Name, Length
+
+# Linux and macOS packages from the same staged UO data.
+& (Join-Path $here 'build-unix.ps1') -Version $Version

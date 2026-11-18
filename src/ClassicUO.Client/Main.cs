@@ -161,7 +161,11 @@ namespace ClassicUO
 
             uint flags = 0;
 
-            if (!Directory.Exists(Settings.GlobalSettings.UltimaOnlineDirectory) || !File.Exists(Path.Combine(Settings.GlobalSettings.UltimaOnlineDirectory, "tiledata.mul")))
+            // Case-insensitive: Linux file systems are case-sensitive and data often ships as "Tiledata.mul"
+            // (the asset loaders already match names this way, see UOFileManager.GetUOFilePath).
+            if (!Directory.Exists(Settings.GlobalSettings.UltimaOnlineDirectory) ||
+                Directory.GetFiles(Settings.GlobalSettings.UltimaOnlineDirectory, "tiledata.mul",
+                    new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }).Length == 0)
             {
                 flags |= INVALID_UO_DIRECTORY;
             }

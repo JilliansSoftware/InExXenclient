@@ -20,6 +20,15 @@ attached to GitHub releases.
 `InExXen.iss` installs per user to `%LOCALAPPDATA%\InExXen` (no admin prompt) and writes
 `settings.json` on first install only, so reinstalling keeps players' settings.
 
+## Linux and macOS
+`build.ps1` ends by running `build-unix.ps1`, which writes `output\InExXen-linux-x64.tar.gz`,
+`InExXen-osx-arm64.tar.gz` and `InExXen-osx-x64.tar.gz`: the client cross-compiled as a
+self-contained .NET build (NativeAOT can't cross-compile), its native libraries, the staged UO
+data, a launcher (`InExXen.sh` / `InExXen.command`) and `settings.default.json`, which the
+launcher copies to `settings.json` on first run. No Razor, no auto-update. `release.ps1`
+refuses to run if these are missing or older than the Windows build, and attaches them to
+every release. The macOS builds are unsigned, so the first start is right-click > Open.
+
 ## Release
 1. Bump `AppVersion` in `InExXen.iss`.
 2. `build.ps1 -Version 1.2.0.0` (the client version players and the server see).

@@ -20,6 +20,14 @@ $stage = Join-Path $here 'stage\InExXen'
 $out = Join-Path $here 'output\release'
 $installer = Join-Path $here 'output\InExXen-Setup.exe'
 if (-not (Test-Path "$stage\ClassicUO.exe")) { throw "Run build.ps1 first (no $stage)" }
+# Linux/macOS packages: attached to every release, not part of the auto-update manifest.
+$unixPackages = @('linux-x64', 'osx-arm64', 'osx-x64') | ForEach-Object { Join-Path $here "output\InExXen-$_.tar.gz" }
+foreach ($p in $unixPackages) {
+    if (-not (Test-Path $p)) { throw "Missing $p (run build.ps1 or build-unix.ps1)" }
+    if ((Get-Item $p).LastWriteTime -lt (Get-Item "$stage\ClassicUO.exe").LastWriteTime) {
+        throw "$p is older than the Windows build; rebuild it so every platform ships the same version"
+    }
+}
 
 if (Test-Path $out) { Remove-Item -Recurse -Force $out }
 New-Item -ItemType Directory -Force $out | Out-Null
@@ -79,12 +87,12 @@ $h = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json' 
 
 $body = @{
     tag_name = $Tag; target_commitish = $Branch; name = "In Ex Xen Client $($Tag.TrimStart('v'))"; draft = $true
-    body = "**New players:** download ``InExXen-Setup.exe`` below and run it.`n**Existing players:** just start the game; it updates itself.`n`nTip: in Options, *Save current settings as defaults for new users* makes every new character start the way you set this one up.`n`nClient version $version."
+    body = "**New players:** download ``InExXen-Setup.exe`` below and run it.`n**Existing players:** just start the game; it updates itself.`n`n**Linux / macOS:** download ``InExXen-linux-x64.tar.gz``, ``InExXen-osx-arm64.tar.gz`` (Apple Silicon) or ``InExXen-osx-x64.tar.gz`` (Intel Mac), unpack it and read README.txt. These don't update themselves: unpack each new release over the old folder (settings are kept). No Razor on Linux/macOS.`n`nTip: in Options, *Save current settings as defaults for new users* makes every new character start the way you set this one up.`n`nClient version $version."
 } | ConvertTo-Json
 $release = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$Repo/releases" -Headers $h -Body $body
 $upload = "https://uploads.github.com/repos/$Repo/releases/$($release.id)/assets?name="
 
-$files = @(Get-ChildItem $out -File) + @(Get-Item $installer)
+$files = @(Get-ChildItem $out -File) + @(Get-Item $installer) + @($unixPackages | ForEach-Object { Get-Item $_ })
 $i = 0
 foreach ($f in $files) {
     $i++; Write-Host "[$i/$($files.Count)] $($f.Name)"

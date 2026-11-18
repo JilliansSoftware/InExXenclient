@@ -118,10 +118,13 @@ namespace ClassicUO.Assets
                 {
                     var files = Directory.GetFiles(dir);
                     var matches = 0;
+                    // IEX: GetFiles returns full paths, so compare against the full path; a relative
+                    // UO directory ("UO" in the Linux package) otherwise never matches.
+                    var wanted = Path.GetFullPath(uoFilePath);
 
                     foreach (var f in files)
                     {
-                        if (string.Equals(f, uoFilePath, StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(f, wanted, StringComparison.OrdinalIgnoreCase))
                         {
                             matches++;
                             uoFilePath = f;
