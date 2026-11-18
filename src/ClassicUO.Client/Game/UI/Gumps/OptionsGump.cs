@@ -66,6 +66,7 @@ namespace ClassicUO.Game.UI.Gumps
         private Combobox _iexTheme; // IEX: window theme (original, dark, light)
         private Checkbox _iexModernSkills; // IEX: skills window
         private Checkbox _iexModernShop; // IEX: shop window
+        private Checkbox _iexSpellRange; // IEX: spell range preview
         private Checkbox _iexCompactBars; // IEX: compact health bars
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
@@ -2468,7 +2469,22 @@ namespace ClassicUO.Game.UI.Gumps
             _iexModernSkills = AddCheckBox(rightArea, "Modern skills window (Dark or Light theme)", _currentProfile.IexModernSkills, startX, startY);
             startY += _iexModernSkills.Height + 4;
             _iexModernShop = AddCheckBox(rightArea, "Modern shop window (Dark or Light theme)", _currentProfile.IexModernShop, startX, startY);
-            startY += _iexModernShop.Height + 10;
+            startY += _iexModernShop.Height + 4;
+            _iexSpellRange = AddCheckBox(rightArea, "Spell range ring and area while targeting", _currentProfile.IexSpellRange, startX, startY);
+            startY += _iexSpellRange.Height + 4;
+
+            // IEX: spell bars (IEX/IexSpellBar.cs)
+            var iexSpellBarButton = new NiceButton(startX, startY, 160, 22, ButtonAction.Activate, "Open a new spell bar") { IsSelectable = false };
+            iexSpellBarButton.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtonType.Left)
+                {
+                    Point gw = _currentProfile.GameWindowPosition, gs = _currentProfile.GameWindowSize;
+                    IEX.IexSpellBar.OpenNew(World, gw.X + gs.X / 2 - 190, gw.Y + gs.Y / 2);
+                }
+            };
+            rightArea.Add(iexSpellBarButton);
+            startY += iexSpellBarButton.Height + 10;
 
             Label text = AddLabel(rightArea, ResGumps.SpeechFont, startX, startY);
             startX += 40;
@@ -3811,6 +3827,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _iexTheme.SelectedIndex = (int)IEX.IexTheme.Original; // IEX: window theme
                     _iexModernSkills.IsChecked = true;
                     _iexModernShop.IsChecked = true;
+                    _iexSpellRange.IsChecked = true;
                     _overrideAllFontsIsUnicodeCheckbox.SelectedIndex = 1;
 
                     break;
@@ -4270,6 +4287,7 @@ namespace ClassicUO.Game.UI.Gumps
 
             _currentProfile.IexModernSkills = _iexModernSkills.IsChecked; // takes effect next time the skills window opens
             _currentProfile.IexModernShop = _iexModernShop.IsChecked; // takes effect at the next vendor
+            _currentProfile.IexSpellRange = _iexSpellRange.IsChecked;
             byte _fontValue = _fontSelectorChat.GetSelectedFont();
             _currentProfile.OverrideAllFonts = _overrideAllFonts.IsChecked;
             _currentProfile.OverrideAllFontsIsUnicode = _overrideAllFontsIsUnicodeCheckbox.SelectedIndex == 1;

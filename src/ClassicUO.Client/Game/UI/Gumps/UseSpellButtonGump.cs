@@ -227,6 +227,18 @@ namespace ClassicUO.Game.UI.Gumps
             return false;
         }
 
+        // IEX: dropped on a spell bar slot: the bar takes the spell (IEX/IexSpellBar.cs)
+        protected override void OnDragEnd(int x, int y)
+        {
+            if (_spell != null && IEX.IexSpellBar.TryDrop(_spell.ID))
+            {
+                Dispose();
+                return;
+            }
+
+            base.OnDragEnd(x, y);
+        }
+
         public override void Save(XmlTextWriter writer)
         {
             base.Save(writer);

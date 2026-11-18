@@ -1111,6 +1111,7 @@ namespace ClassicUO.Game.Scenes
             }
 
             IEX.IexWater.Draw(batcher, _visibleChunks, _offset.X, _offset.Y); // IEX: glints on open water
+            IEX.IexSpellRange.Draw(batcher, _world, _offset.X, _offset.Y); // IEX: spell range ring and area
 
             // draw weather
             _world.Weather.Draw(batcher, 0, 0, MAX_LAYER_DEPTH - 1);

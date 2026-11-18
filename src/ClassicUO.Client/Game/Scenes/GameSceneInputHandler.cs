@@ -1250,6 +1250,11 @@ namespace ClassicUO.Game.Scenes
 
             if (CanExecuteMacro())
             {
+                if (!e.repeat && IEX.IexSpellBar.OnKey(keycode)) // IEX: spell bar keys, and setting one
+                {
+                    return;
+                }
+
                 Macro macro = _world.Macros.FindMacro(
                     keycode,
                     Keyboard.Alt,

@@ -654,6 +654,7 @@ namespace ClassicUO.Game
             if (index >= 0)
             {
                 LastSpellIndex = index;
+                IEX.IexSpellRange.Casting(index); // IEX: for the range preview
                 Socket.Send_CastSpellFromBook(index, bookSerial);
             }
         }
@@ -663,6 +664,7 @@ namespace ClassicUO.Game
             if (index >= 0)
             {
                 LastSpellIndex = index;
+                IEX.IexSpellRange.Casting(index); // IEX: for the range preview
                 Socket.Send_CastSpell(index);
             }
         }

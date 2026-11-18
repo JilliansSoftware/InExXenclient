@@ -269,6 +269,8 @@ namespace ClassicUO.Configuration
         public bool IexCompactBars { get; set; } // IEX: "custom" health bars in the compact, resizable style (IEX/IexHealthBar.cs); on for new characters
         public Point IexBarSizeSelf { get; set; } = new Point(180, 68); // IEX: your compact bar's size
         public Point IexBarSizeOther { get; set; } = new Point(180, 36); // IEX: everyone else's
+        public bool IexSpellBarOffered { get; set; } // IEX: the first spell bar was opened (IEX/IexSpellBar.cs)
+        public bool IexSpellRange { get; set; } = true; // IEX: range ring and area preview while a spell targets (IEX/IexSpellRange.cs)
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with the dark or light theme), IEX/IexSkillsGump.cs
         public bool IexOutOfRangeReset { get; set; } // IEX: set once the old "gray out of range" default has been switched off
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
@@ -577,6 +579,11 @@ namespace ClassicUO.Configuration
 
                                 case GumpType.InfoBar:
                                     gump = new InfoBarGump(world);
+
+                                    break;
+
+                                case GumpType.IexSpellBar: // IEX
+                                    gump = new IEX.IexSpellBar(world);
 
                                     break;
 

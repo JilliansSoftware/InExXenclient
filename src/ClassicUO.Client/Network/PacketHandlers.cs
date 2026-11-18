@@ -2285,6 +2285,8 @@ namespace ClassicUO.Network
                         UIManager.Add(gump);
                     }
                 }
+
+                IEX.IexSpellBar.OnLogin(world); // IEX: the first time, open a spell bar
             }
         }
 
