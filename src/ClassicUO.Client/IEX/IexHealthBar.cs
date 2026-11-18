@@ -82,12 +82,20 @@ namespace ClassicUO.IEX
 
         bool WantsFull => LocalSerial == World.Player || World.Party.Contains(LocalSerial);
 
+        // The first test build's sizes (text too small): treated as "not resized" and grown.
+        static bool FirstSize(Point s) => s == new Point(160, 56) || s == new Point(160, 32);
+
         static int MinHeight(bool full) => NameH + Bottom + (full ? 3 * MinBar + 2 * Gap : MinBar);
 
         static Point DefaultSize(bool self, bool full)
         {
             Profile p = ProfileManager.CurrentProfile;
             Point s = self ? p.IexBarSizeSelf : p.IexBarSizeOther;
+
+            if (FirstSize(s))
+            {
+                s = self ? new Point(180, 68) : new Point(180, 36);
+            }
             return new Point(Math.Max(MinWidth, s.X), Math.Max(MinHeight(full), s.Y));
         }
 
@@ -112,6 +120,8 @@ namespace ClassicUO.IEX
             _textBox = null;
             WantUpdateSize = false;
             CanCloseWithRightClick = true;
+            AcceptMouseInput = true; // gumps don't take clicks by default: this drags, targets, closes on right-click
+            CanMove = true;
 
             _full = WantsFull;
 
@@ -325,7 +335,7 @@ namespace ClassicUO.IEX
         public override void Restore(XmlElement xml)
         {
             // Read the size first: the base builds the bar.
-            if (int.TryParse(xml.GetAttribute("iexw"), out int w) && int.TryParse(xml.GetAttribute("iexh"), out int h))
+            if (int.TryParse(xml.GetAttribute("iexw"), out int w) && int.TryParse(xml.GetAttribute("iexh"), out int h) && !FirstSize(new Point(w, h)))
             {
                 _w = w;
                 _h = h;
@@ -483,7 +493,7 @@ namespace ClassicUO.IEX
                     return;
                 }
 
-                float scale = Math.Min(1f, (h + 3) / (float)_rt.Height);
+                float scale = Math.Min(1f, (h + 5) / (float)_rt.Height);
                 int tw = (int)(_rt.Width * scale), th = (int)(_rt.Height * scale);
 
                 if (tw > w)

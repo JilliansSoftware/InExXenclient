@@ -267,8 +267,8 @@ namespace ClassicUO.Configuration
         public bool IexModernShop { get; set; } // IEX: the shard's shop window (with the dark or light theme), IEX/IexShopGump.cs; on for new characters
         public Point IexShopSize { get; set; } = new Point(580, 420); // IEX: its size
         public bool IexCompactBars { get; set; } // IEX: "custom" health bars in the compact, resizable style (IEX/IexHealthBar.cs); on for new characters
-        public Point IexBarSizeSelf { get; set; } = new Point(160, 56); // IEX: your compact bar's size
-        public Point IexBarSizeOther { get; set; } = new Point(160, 32); // IEX: everyone else's
+        public Point IexBarSizeSelf { get; set; } = new Point(180, 68); // IEX: your compact bar's size
+        public Point IexBarSizeOther { get; set; } = new Point(180, 36); // IEX: everyone else's
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with the dark or light theme), IEX/IexSkillsGump.cs
         public bool IexOutOfRangeReset { get; set; } // IEX: set once the old "gray out of range" default has been switched off
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
