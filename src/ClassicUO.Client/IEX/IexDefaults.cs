@@ -32,6 +32,8 @@ namespace ClassicUO.IEX
                 IexEnhancedWeather = true, // rain streaks and splashes, storms, water glints
                 IexOutOfRangeReset = true, // no grey fog past the view range (see ProfileManager.Load)
                 IexModernShop = true, // one resizable shop window with search and a cart
+                CustomBarsToggled = true, // health bars in the compact style:
+                IexCompactBars = true, // resizable, with mana and stamina (IexHealthBar)
                 EnableMousewheelScaleZoom = true, // Ctrl + mouse wheel zooms the game view (smoothly, see Camera)
             };
         }

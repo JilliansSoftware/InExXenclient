@@ -66,6 +66,7 @@ namespace ClassicUO.Game.UI.Gumps
         private Combobox _iexTheme; // IEX: window theme (original, dark, light)
         private Checkbox _iexModernSkills; // IEX: skills window
         private Checkbox _iexModernShop; // IEX: shop window
+        private Checkbox _iexCompactBars; // IEX: compact health bars
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
         private InputField _gameWindowHeight;
@@ -1035,6 +1036,9 @@ namespace ClassicUO.Game.UI.Gumps
                     0
                 )
             );
+
+            // IEX: the compact style for custom bars (IEX/IexHealthBar.cs)
+            section3.Add(_iexCompactBars = AddCheckBox(null, "Compact style: resizable, with mana and stamina", _currentProfile.IexCompactBars, 0, 0));
 
             section3.Add
             (
@@ -3716,6 +3720,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _nameOverheadShowHpBar.IsChecked = true;
                     _customBars.IsChecked = false;
                     _customBarsBBG.IsChecked = false;
+                    _iexCompactBars.IsChecked = false;
                     _autoOpenCorpse.IsChecked = false;
                     _autoOpenDoors.IsChecked = false;
                     _smoothDoors.IsChecked = false;
@@ -4398,31 +4403,16 @@ namespace ClassicUO.Game.UI.Gumps
 
 
             bool updateHealthBars = _currentProfile.CustomBarsToggled != _customBars.IsChecked;
+            bool iexBarStyle = _currentProfile.IexCompactBars != _iexCompactBars.IsChecked; // IEX
             _currentProfile.CustomBarsToggled = _customBars.IsChecked;
+            _currentProfile.IexCompactBars = _iexCompactBars.IsChecked;
 
-            if (updateHealthBars)
+            if (updateHealthBars || iexBarStyle) // IEX: swap every open bar to the chosen kind
             {
-                if (_currentProfile.CustomBarsToggled)
+                foreach (BaseHealthBarGump bar in UIManager.Gumps.OfType<BaseHealthBarGump>().ToList())
                 {
-                    List<HealthBarGump> hbgstandard = UIManager.Gumps.OfType<HealthBarGump>().ToList();
-
-                    foreach (HealthBarGump healthbar in hbgstandard)
-                    {
-                        UIManager.Add(new HealthBarGumpCustom(World, healthbar.LocalSerial) { X = healthbar.X, Y = healthbar.Y });
-
-                        healthbar.Dispose();
-                    }
-                }
-                else
-                {
-                    List<HealthBarGumpCustom> hbgcustom = UIManager.Gumps.OfType<HealthBarGumpCustom>().ToList();
-
-                    foreach (HealthBarGumpCustom customhealthbar in hbgcustom)
-                    {
-                        UIManager.Add(new HealthBarGump(World, customhealthbar.LocalSerial) { X = customhealthbar.X, Y = customhealthbar.Y });
-
-                        customhealthbar.Dispose();
-                    }
+                    UIManager.Add(ClassicUO.IEX.IexHealthBar.Create(World, bar.LocalSerial).At(bar.X, bar.Y));
+                    bar.Dispose();
                 }
             }
 

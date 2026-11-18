@@ -80,7 +80,7 @@ namespace ClassicUO.Game.UI.Gumps
                         UIManager.GetGump<BaseHealthBarGump>(World.Player)?.Dispose();
 
                         if (ProfileManager.CurrentProfile.CustomBarsToggled)
-                            UIManager.Add(new HealthBarGumpCustom(World, World.Player) { X = ScreenCoordinateX, Y = ScreenCoordinateY });
+                            UIManager.Add(ClassicUO.IEX.IexHealthBar.Custom(World, World.Player).At(ScreenCoordinateX, ScreenCoordinateY) /* IEX */);
                         else
                             UIManager.Add(new HealthBarGump(World, World.Player) { X = ScreenCoordinateX, Y = ScreenCoordinateY });
 

@@ -266,6 +266,9 @@ namespace ClassicUO.Configuration
         public bool IexDarkUi { get; set; } // IEX: the old dark windows switch, kept so earlier profiles keep their choice
         public bool IexModernShop { get; set; } // IEX: the shard's shop window (with the dark or light theme), IEX/IexShopGump.cs; on for new characters
         public Point IexShopSize { get; set; } = new Point(580, 420); // IEX: its size
+        public bool IexCompactBars { get; set; } // IEX: "custom" health bars in the compact, resizable style (IEX/IexHealthBar.cs); on for new characters
+        public Point IexBarSizeSelf { get; set; } = new Point(160, 56); // IEX: your compact bar's size
+        public Point IexBarSizeOther { get; set; } = new Point(160, 32); // IEX: everyone else's
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with the dark or light theme), IEX/IexSkillsGump.cs
         public bool IexOutOfRangeReset { get; set; } // IEX: set once the old "gray out of range" default has been switched off
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
@@ -563,7 +566,7 @@ namespace ClassicUO.Configuration
                                 case GumpType.HealthBar:
                                     if (CustomBarsToggled)
                                     {
-                                        gump = new HealthBarGumpCustom(world);
+                                        gump = ClassicUO.IEX.IexHealthBar.Custom(world) /* IEX */;
                                     }
                                     else
                                     {
@@ -733,7 +736,7 @@ namespace ClassicUO.Configuration
                                     case GumpType.HealthBar:
                                         if (CustomBarsToggled)
                                         {
-                                            gump = new HealthBarGumpCustom(world);
+                                            gump = ClassicUO.IEX.IexHealthBar.Custom(world) /* IEX */;
                                         }
                                         else
                                         {

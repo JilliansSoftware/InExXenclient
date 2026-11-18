@@ -210,7 +210,7 @@ namespace ClassicUO.Game.Scenes
 
                         if (useCHB)
                         {
-                            hbgc = new HealthBarGumpCustom(_world, mobile);
+                            hbgc = ClassicUO.IEX.IexHealthBar.Custom(_world, mobile) /* IEX */;
                         }
                         else
                         {
@@ -1088,11 +1088,7 @@ namespace ClassicUO.Game.Scenes
                                 );
 
                                 UIManager.Add(
-                                    customgump = new HealthBarGumpCustom(_world, obj)
-                                    {
-                                        X = Mouse.LClickPosition.X - (rect.Width >> 1),
-                                        Y = Mouse.LClickPosition.Y - (rect.Height >> 1)
-                                    }
+                                    customgump = ClassicUO.IEX.IexHealthBar.Custom(_world, obj).At(Mouse.LClickPosition.X - (rect.Width >> 1), Mouse.LClickPosition.Y - (rect.Height >> 1)) /* IEX */
                                 );
                             }
                             else

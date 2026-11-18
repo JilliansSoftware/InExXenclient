@@ -704,7 +704,7 @@ namespace ClassicUO.Game.Managers
 
                                             if (ProfileManager.CurrentProfile.CustomBarsToggled)
                                             {
-                                                UIManager.Add(new HealthBarGumpCustom(_world, _world.Player) { X = status.ScreenCoordinateX, Y = status.ScreenCoordinateY });
+                                                UIManager.Add(ClassicUO.IEX.IexHealthBar.Custom(_world, _world.Player).At(status.ScreenCoordinateX, status.ScreenCoordinateY) /* IEX */);
                                             }
                                             else
                                             {

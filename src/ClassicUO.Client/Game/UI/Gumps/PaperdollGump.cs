@@ -718,11 +718,7 @@ namespace ClassicUO.Game.UI.Gumps
                             );
 
                             UIManager.Add(
-                                new HealthBarGumpCustom(World, LocalSerial)
-                                {
-                                    X = Mouse.Position.X - (bounds.Width >> 1),
-                                    Y = Mouse.Position.Y - 5
-                                }
+                                ClassicUO.IEX.IexHealthBar.Custom(World, LocalSerial).At(Mouse.Position.X - (bounds.Width >> 1), Mouse.Position.Y - 5) /* IEX */
                             );
                         }
                         else
