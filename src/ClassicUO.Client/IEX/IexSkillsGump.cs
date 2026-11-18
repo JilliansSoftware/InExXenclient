@@ -160,7 +160,7 @@ namespace ClassicUO.IEX
             RebuildList();
 
             // Resize grip, bottom-right.
-            var grip = new GumpPic(Width - 12, Height - 12, IexDarkArt.ResizeGrip, 0) { AcceptMouseInput = true, CanMove = false };
+            var grip = new IexResizeGrip(Width, Height);
             grip.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)

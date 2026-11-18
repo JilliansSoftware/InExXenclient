@@ -203,7 +203,7 @@ namespace ClassicUO.IEX
             TextButton(Width - Frame - acceptW - 6 - clearW, by, "Clear", ClearCart);
 
             // Resize grip, bottom-right.
-            var grip = new GumpPic(Width - 12, Height - 12, IexDarkArt.ResizeGrip, 0) { AcceptMouseInput = true, CanMove = false };
+            var grip = new IexResizeGrip(Width, Height, 14); // clear of the Accept button
             grip.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)

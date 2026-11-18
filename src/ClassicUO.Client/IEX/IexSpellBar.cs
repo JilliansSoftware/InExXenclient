@@ -115,7 +115,7 @@ namespace ClassicUO.IEX
                 });
             }
 
-            var grip = new GumpPic(Width - 12, Height - 12, IexDarkArt.ResizeGrip, 0) { AcceptMouseInput = true, CanMove = false };
+            var grip = new IexResizeGrip(Width, Height, 10); // the bar's edge is narrow: clear of the last slot
             grip.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)

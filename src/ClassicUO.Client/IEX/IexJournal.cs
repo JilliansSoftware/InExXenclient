@@ -176,10 +176,8 @@ namespace ClassicUO.IEX
             _text.Measure();
             _scroll.Value = atBottom ? _scroll.MaxValue : Math.Min(scrollValue, _scroll.MaxValue);
 
-            // Resize grip, bottom-right (gold art with a theme on, a plain corner without).
-            Control grip = IexDarkUi.Active
-                ? new GumpPic(Width - 12, Height - 12, IexDarkArt.ResizeGrip, 0) { AcceptMouseInput = true, CanMove = false }
-                : new HitBox(Width - 10, Height - 10, 10, 10, alpha: 0.35f);
+            // Resize grip, bottom-right (the whole corner square takes the mouse: IexResizeGrip).
+            Control grip = new IexResizeGrip(Width, Height);
             grip.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)
