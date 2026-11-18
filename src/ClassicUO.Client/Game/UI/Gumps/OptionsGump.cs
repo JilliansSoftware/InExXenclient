@@ -70,6 +70,7 @@ namespace ClassicUO.Game.UI.Gumps
         private Checkbox _iexCompactBars; // IEX: compact health bars
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
+        private Checkbox _iexSway; // IEX: trees and grass in the wind
         private InputField _gameWindowHeight;
         private Checkbox _maxJournalFilesEnabled;
         private InputField _maxJournalFiles;
@@ -1903,6 +1904,18 @@ namespace ClassicUO.Game.UI.Gumps
                     startY
                 )
             );
+
+            section3.Add
+            (
+                _iexSway = AddCheckBox
+                (
+                    null,
+                    "Trees and grass sway in the wind",
+                    _currentProfile.IexSway,
+                    startX,
+                    startY
+                )
+            ); // IEX
 
 
             SettingsSection section4 = AddSettingsSection(box, "Misc");
@@ -3796,6 +3809,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _darkNights.IsChecked = false;
                     _iexEnhancedLighting.IsChecked = false; // IEX: enhanced lighting
                     _iexEnhancedWeather.IsChecked = false; // IEX: enhanced weather and water
+                    _iexSway.IsChecked = true; // IEX: trees and grass in the wind
                     _enableShadows.IsChecked = true;
                     _enableShadowsStatics.IsChecked = true;
                     _terrainShadowLevel.Value = 15;
@@ -4242,6 +4256,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.UseDarkNights = _darkNights.IsChecked;
             _currentProfile.IexEnhancedLighting = _iexEnhancedLighting.IsChecked; // IEX: enhanced lighting
             _currentProfile.IexEnhancedWeather = _iexEnhancedWeather.IsChecked; // IEX: enhanced weather and water
+            _currentProfile.IexSway = _iexSway.IsChecked; // IEX: trees and grass in the wind
             _currentProfile.ShadowsEnabled = _enableShadows.IsChecked;
             _currentProfile.ShadowsStatics = _enableShadowsStatics.IsChecked;
             _currentProfile.TerrainShadowsLevel = _terrainShadowLevel.Value;

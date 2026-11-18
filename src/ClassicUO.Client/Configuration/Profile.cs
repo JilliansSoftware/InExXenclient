@@ -275,6 +275,7 @@ namespace ClassicUO.Configuration
         public bool IexOutOfRangeReset { get; set; } // IEX: set once the old "gray out of range" default has been switched off
         public bool IexEnhancedLighting { get; set; } // IEX: tinted nights, warm fire light, glow, see IEX/IexLighting.cs
         public bool IexEnhancedWeather { get; set; } // IEX: rain streaks and splashes, storms, water glints, see IEX/IexWeather.cs
+        public bool IexSway { get; set; } = true; // IEX: trees and grass sway in the wind, see IEX/IexSway.cs
 
         public bool SallosEasyGrab { get; set; }
 
@@ -687,6 +688,7 @@ namespace ClassicUO.Configuration
 
                             gump.LocalSerial = serial;
                             gump.Restore(xml);
+                            IEX.IexWindowLock.Restore(gump, xml); // IEX
                             gump.X = x;
                             gump.Y = y;
 
@@ -767,6 +769,7 @@ namespace ClassicUO.Configuration
                                 {
                                     gump.LocalSerial = serial;
                                     gump.Restore(xml);
+                                    IEX.IexWindowLock.Restore(gump, xml); // IEX
                                     gump.X = x;
                                     gump.Y = y;
 

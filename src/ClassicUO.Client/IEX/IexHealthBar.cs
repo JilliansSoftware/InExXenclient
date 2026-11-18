@@ -531,7 +531,7 @@ namespace ClassicUO.IEX
 
             protected override void OnMouseDown(int x, int y, MouseButtonType button)
             {
-                if (button == MouseButtonType.Left)
+                if (button == MouseButtonType.Left && !_owner.IexLocked) // locked: no resizing (IexWindowLock)
                 {
                     _owner._resizing = true;
                     _owner._resizeMouse = Mouse.Position;

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace ClassicUO.Renderer
 {
-    public sealed unsafe class UltimaBatcher2D : IDisposable
+    public sealed unsafe partial class UltimaBatcher2D : IDisposable // IEX: partial (IEX/IexBentSprite.cs)
     {
         private static readonly float[] _cornerOffsetX = new float[] { 0.0f, 1.0f, 0.0f, 1.0f };
         private static readonly float[] _cornerOffsetY = new float[] { 0.0f, 0.0f, 1.0f, 1.0f };

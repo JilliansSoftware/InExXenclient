@@ -133,6 +133,11 @@ namespace ClassicUO.Game.Managers
         {
             HandleMouseInput();
 
+            if (MouseOverControl != null && IEX.IexWindowLock.OnMouseDown(MouseOverControl, button)) // IEX: Ctrl+Alt+click locks a window
+            {
+                return;
+            }
+
             if (MouseOverControl != null)
             {
                 if (MouseOverControl.IsEnabled && MouseOverControl.IsVisible)
@@ -374,6 +379,7 @@ namespace ClassicUO.Game.Managers
                 Control g = last.Value;
                 layerDepth+=10;
                 g.AddToRenderLists(_renderLists, g.X, g.Y, ref layerDepth);
+                IEX.IexWindowLock.AddPadlock(_renderLists, (Gump)g, layerDepth); // IEX
             }
 
             Profiler.EnterContext(Profiler.ProfilerContext.RENDER_FRAME_UI);
@@ -662,6 +668,11 @@ namespace ClassicUO.Game.Managers
             while (dragTarget.Parent != null)
             {
                 dragTarget = dragTarget.Parent;
+            }
+
+            if (dragTarget is Gump lockedGump && lockedGump.IexLocked) // IEX: a locked window stays put
+            {
+                return;
             }
 
             if (dragTarget.CanMove)

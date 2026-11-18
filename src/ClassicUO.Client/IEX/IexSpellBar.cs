@@ -118,7 +118,7 @@ namespace ClassicUO.IEX
             var grip = new GumpPic(Width - 12, Height - 12, IexDarkArt.ResizeGrip, 0) { AcceptMouseInput = true, CanMove = false };
             grip.MouseDown += (s, e) =>
             {
-                if (e.Button == MouseButtonType.Left)
+                if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)
                 {
                     _resizing = true;
                     _resizeMouse = Mouse.Position;
@@ -173,6 +173,7 @@ namespace ClassicUO.IEX
         {
             var menu = new ContextMenuControl(this);
             menu.Add("New spell bar", () => OpenNew(World, X + 20, Y + Height + 6));
+            menu.Add(IexLocked ? "Unlock (Ctrl+Alt+click)" : "Lock in place (Ctrl+Alt+click)", () => IexLocked = !IexLocked);
             menu.Add("Close this bar", Dispose);
             menu.Show();
         }
@@ -528,6 +529,7 @@ namespace ClassicUO.IEX
                 }
 
                 menu.Add("New spell bar", () => OpenNew(_bar.World, _bar.X + 20, _bar.Y + _bar.Height + 6));
+                menu.Add(_bar.IexLocked ? "Unlock (Ctrl+Alt+click)" : "Lock in place (Ctrl+Alt+click)", () => _bar.IexLocked = !_bar.IexLocked);
                 menu.Add("Close this bar", _bar.Dispose);
                 menu.Show();
             }

@@ -71,6 +71,26 @@ namespace ClassicUO.Game.GameObjects
                 graphic = Constants.TREE_REPLACE_GRAPHIC;
             }
 
+            int iexSway = isTree && ProfileManager.CurrentProfile.TreeToStumps ? 0 : IEX.IexSway.Kind(graphic, ref ItemData); // IEX: trees and grass in the wind
+
+            if (iexSway != 0) // IEX
+            {
+                IEX.IexSway.Draw(
+                    batcher,
+                    graphic,
+                    iexSway,
+                    posX,
+                    posY,
+                    X,
+                    Y,
+                    hueVec,
+                    ProfileManager.CurrentProfile.ShadowsEnabled
+                        && ProfileManager.CurrentProfile.ShadowsStatics
+                        && (isTree || ItemData.IsFoliage || StaticFilters.IsRock(graphic)),
+                    depth
+                );
+            }
+            else
             DrawStaticAnimated(
                 batcher,
                 graphic,

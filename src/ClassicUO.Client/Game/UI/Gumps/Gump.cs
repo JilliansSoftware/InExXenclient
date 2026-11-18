@@ -62,12 +62,15 @@ namespace ClassicUO.Game.UI.Gumps
         }
 
 
+        public bool IexLocked { get; set; } // IEX: locked in place (IEX/IexWindowLock.cs)
+
         public virtual void Save(XmlTextWriter writer)
         {
             writer.WriteAttributeString("type", ((int) GumpType).ToString());
             writer.WriteAttributeString("x", X.ToString());
             writer.WriteAttributeString("y", Y.ToString());
             writer.WriteAttributeString("serial", LocalSerial.ToString());
+            IEX.IexWindowLock.Save(this, writer); // IEX
         }
 
         public void SetInScreen()
@@ -181,7 +184,7 @@ namespace ClassicUO.Game.UI.Gumps
 
         protected override void CloseWithRightClick()
         {
-            if (!CanCloseWithRightClick)
+            if (!CanCloseWithRightClick || IexLocked) // IEX: a locked window stays
             {
                 return;
             }

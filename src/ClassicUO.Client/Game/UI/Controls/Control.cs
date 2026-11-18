@@ -728,7 +728,7 @@ namespace ClassicUO.Game.UI.Controls
 
         protected virtual void CloseWithRightClick()
         {
-            if (!CanCloseWithRightClick)
+            if (!CanCloseWithRightClick || IEX.IexWindowLock.Locked(this)) // IEX: a locked window stays
             {
                 return;
             }

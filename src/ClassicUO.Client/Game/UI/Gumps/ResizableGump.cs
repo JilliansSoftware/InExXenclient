@@ -53,12 +53,14 @@ namespace ClassicUO.Game.UI.Gumps
             Add(_button);
 
             _button.MouseDown += (sender, e) => { 
+                if (IexLocked) return; // IEX: locked windows don't resize
                 _clicked = true;
                 _beforeResizeSize = _savedSize;
             };
 
             _button.MouseUp += (sender, e) =>
             {
+                if (!_clicked) return; // IEX: (locked)
                 ResizeWindow(_lastSize);
                 _clicked = false;
                 ResizeCompleted?.Invoke(this, new(_beforeResizeSize));

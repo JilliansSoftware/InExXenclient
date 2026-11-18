@@ -159,7 +159,7 @@ namespace ClassicUO.IEX
                 : new HitBox(Width - 10, Height - 10, 10, 10, alpha: 0.35f);
             grip.MouseDown += (s, e) =>
             {
-                if (e.Button == MouseButtonType.Left)
+                if (e.Button == MouseButtonType.Left && !IexLocked) // locked: no resizing (IexWindowLock)
                 {
                     _resizing = true;
                     _resizeMouse = Mouse.Position;

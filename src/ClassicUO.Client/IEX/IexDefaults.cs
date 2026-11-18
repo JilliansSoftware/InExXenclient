@@ -61,6 +61,7 @@ namespace ClassicUO.IEX
             Text(macros, "All Kill", K.SDLK_F10, MacroType.Say, "all kill");
             Text(macros, "Lock Down", K.SDLK_F9, MacroType.Say, "i wish to lock this down", alt: true);
             Text(macros, "Release", K.SDLK_F10, MacroType.Say, "i wish to release this", alt: true);
+            Add(macros, "Toggle Interface", K.SDLK_H, alt: false, MacroType.ToggleInterface, ctrl: true); // hide every window
         }
 
         static void Open(MacroManager m, string name, K key, MacroSubType sub, bool alt = false, bool ctrl = false)

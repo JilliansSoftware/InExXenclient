@@ -394,6 +394,9 @@ namespace ClassicUO.Game.Map
             if (StaticFilters.IsRock(graphic))
                 return true;
 
+            if (IEX.IexSway.Plant(graphic, ref itemData) != IEX.IexSway.None) // IEX: plants move in the wind, drawn one by one
+                return true;
+
             return false;
         }
 

@@ -1513,6 +1513,11 @@ namespace ClassicUO.Game.Managers
 
                     break;
 
+                case MacroType.ToggleInterface: // IEX
+                    IEX.IexWindowLock.ToggleInterface();
+
+                    break;
+
                 case MacroType.Aura:
                     // hold to draw
                     break;
@@ -2355,7 +2360,8 @@ namespace ClassicUO.Game.Managers
         CloseCorpses,
         UseObject,
         LookAtMouse,
-        UseCounterBarSlot
+        UseCounterBarSlot,
+        ToggleInterface // IEX: hide or show every window (IEX/IexWindowLock.cs)
     }
 
     internal enum MacroSubType
