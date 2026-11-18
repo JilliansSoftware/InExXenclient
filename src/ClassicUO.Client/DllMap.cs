@@ -121,7 +121,15 @@ namespace ClassicUO
                 mapDictionary.Add(oldLib, newLib);
             }
 
-            NativeLibrary.SetDllImportResolver(assembly, mapAndLoad);
+            try
+            {
+                NativeLibrary.SetDllImportResolver(assembly, mapAndLoad);
+            }
+            catch (InvalidOperationException)
+            {
+                // Non-AOT (JIT) builds: FNA's own module initializer already registered a resolver
+                // from the same FNA.dll.config, and only one is allowed per assembly.
+            }
 
             static IntPtr mapAndLoad(
                 string libraryName,
