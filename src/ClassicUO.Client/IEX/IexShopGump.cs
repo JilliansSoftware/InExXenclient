@@ -1,6 +1,6 @@
 // The shard's shop window (Options "Modern shop window", needs the Dark or Light theme): one
 // resizable window for buying and selling instead of the two classic scrolls.
-//   left   the vendor's list: picture, name, price, how many; an amount box per line
+//   left   the vendor's list: picture, name, price, how many; an amount box per line (0 to start) with - and + under it
 //          (double-click a line for one more, Shift + double-click for all of it)
 //   top    search box, sort (vendor order / name / price), and on the sell window "Add all"
 //          (everything shown goes in the cart)
@@ -31,7 +31,7 @@ namespace ClassicUO.IEX
         public static bool Use => IexDarkUi.Active && (ProfileManager.CurrentProfile?.IexModernShop ?? false);
 
         const int MinWidth = 440, MinHeight = 300;
-        const int Frame = 13, RowHeight = 44, CartRowHeight = 18, ArtSize = 40;
+        const int Frame = 13, RowHeight = 46, CartRowHeight = 18, ArtSize = 40;
         static readonly string[] SortNames = { "Vendor order", "Name", "Price: low", "Price: high" };
 
         sealed class Entry
@@ -318,7 +318,7 @@ namespace ClassicUO.IEX
             var row = new RowControl { X = 0, Y = y, Width = w, Height = RowHeight };
             row.Add(new ItemArt(e.Serial, e.Graphic, e.Hue, IsBuyGump) { X = 2, Y = 2, Width = ArtSize, Height = ArtSize });
 
-            const int boxW = 44;
+            const int boxW = 52;
             int textW = w - ArtSize - boxW - 16;
             row.Add(new Label(e.Name, true, IexDarkUi.TextHue, textW, font: 1, style: FontStyle.Cropped) { X = ArtSize + 8, Y = 5, AcceptMouseInput = false });
             row.Add(new Label($"{e.Price} gp each, {e.Available} {(IsBuyGump ? "for sale" : "yours")}", true, IexDarkUi.DimHue, textW, font: 1, style: FontStyle.Cropped)
@@ -326,8 +326,8 @@ namespace ClassicUO.IEX
                 X = ArtSize + 8, Y = 22, AcceptMouseInput = false
             });
 
-            // Amount box: how many of this line are in the cart.
-            int bx = w - boxW - 2, by = (RowHeight - 20) / 2;
+            // Amount box: how many of this line are in the cart (0 to start), with - and + under it.
+            int bx = w - boxW - 2, by = 2;
             row.Add(new ResizePic(0x0BB8) { X = bx, Y = by, Width = boxW, Height = 20, AcceptMouseInput = false });
             var box = new StbTextBox(1, 5, boxW - 8, true, hue: IexDarkUi.AccentHue)
             {
@@ -338,7 +338,19 @@ namespace ClassicUO.IEX
                 NumbersOnly = true
             };
             _cart.TryGetValue(e.Serial, out int inCart);
-            box.SetText(inCart > 0 ? inCart.ToString() : string.Empty);
+            box.SetText(inCart.ToString());
+
+            int stepW = (boxW - 2) / 2;
+            StepButton(row, bx, by + 22, stepW, "-", "One fewer (Shift: none)", () =>
+            {
+                _cart.TryGetValue(e.Serial, out int now);
+                SetAmount(e, Keyboard.Shift ? 0 : now - 1, fromBox: false);
+            });
+            StepButton(row, bx + boxW - stepW, by + 22, stepW, "+", "One more (Shift: all)", () =>
+            {
+                _cart.TryGetValue(e.Serial, out int now);
+                SetAmount(e, Keyboard.Shift ? e.Available : now + 1, fromBox: false);
+            });
             box.TextChanged += (s, a) =>
             {
                 if (_settingAmount)
@@ -370,6 +382,25 @@ namespace ClassicUO.IEX
             return row;
         }
 
+        // A small framed - or + under a line's amount box.
+        static void StepButton(Control row, int x, int y, int w, string text, string tooltip, Action click)
+        {
+            row.Add(new ResizePic(0x0BB8) { X = x, Y = y, Width = w, Height = 18, AcceptMouseInput = false });
+            var label = new Label(text, true, IexDarkUi.AccentHue, font: 1) { AcceptMouseInput = false };
+            label.X = x + (w - label.Width) / 2;
+            label.Y = y + 1;
+            row.Add(label);
+            var hit = new HitBox(x, y, w, 18, tooltip, 0.1f);
+            hit.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtonType.Left)
+                {
+                    click();
+                }
+            };
+            row.Add(hit);
+        }
+
         void SetAmount(Entry e, int n, bool fromBox)
         {
             n = Math.Clamp(n, 0, Math.Min(e.Available, ushort.MaxValue));
@@ -386,9 +417,11 @@ namespace ClassicUO.IEX
             // Show the clamped number (or the new one after a double-click) in the line's box.
             if (_amountBoxes.TryGetValue(e.Serial, out StbTextBox box))
             {
-                string want = n > 0 ? n.ToString() : string.Empty;
+                string want = n.ToString();
+                string now = box.Text ?? string.Empty;
 
-                if (!fromBox || (box.Text ?? string.Empty) != want && !(n == 0 && box.Text == "0"))
+                // While typing, an emptied box stays empty (counts as 0) so a new number can go in.
+                if (!fromBox || now.Length > 0 && now != want)
                 {
                     _settingAmount = true;
                     box.SetText(want);
