@@ -175,7 +175,7 @@ namespace ClassicUO.Renderer
             // The edge is added after sizing, so start from the glyph without it.
             FontsLoader.SingleGlyphInfo g = isUnicode
                 ? _fontsLoader.RenderSingleGlyphUnicode(font, character, false, isSolid, isItalic, colorOrHue)
-                : _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue);
+                : _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue, iexOutline: false);
 
             var result = new GlyphAtlasEntry
             {
@@ -189,7 +189,7 @@ namespace ClassicUO.Renderer
                 return result;
             }
 
-            uint[] px = SizeGlyph(g, hasBorder && isUnicode, s, fx, out int bw, out int bh, out int pad);
+            uint[] px = SizeGlyph(g, hasBorder && isUnicode || !isUnicode && FontsLoader.IexPolish, s, fx, out int bw, out int bh, out int pad); // IEX: polished ASCII letters are outlined after sizing
 
             result.Texture = _atlas.AddSprite(px, bw, bh, out var uv);
             result.UV = uv;

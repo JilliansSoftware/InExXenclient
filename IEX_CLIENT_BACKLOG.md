@@ -33,6 +33,7 @@ Our changes live in `src/*/IEX/` folders; upstream files only get small hooks ma
 - [x] Skills window redesign (`IEX/IexSkillsGump.cs`, Options > Fonts "Modern skills window", needs the Dark or Light theme): resizable, search, Real/Base/Cap, groups sidebar (dropdown when narrow), use + lock per row, drag to group / out for a skill button. No bars or gain counts on purpose. Not yet tried in game.
 - [x] Dark status window and bars (with dark windows): status 0x2A6C, own bar 0x0803/0x0807 (war = red copy), others' bar 0x0804 grey plus pre-coloured copies per notoriety (0xFE40-0xFE44, drawn untinted so the gold stays gold). Art from Midjourney (`branding/art/status-mj.webp`, `statusbar-mj.webp`) fitted by `branding/art/make_status.py`. Status numbers parchment, name gold. Art checked offline; not yet tried in game. Only for MUL gump files (UOP status art has another layout).
 - Fonts: keep UO defaults (decided 2026-11-09)
+- [x] Polished lettering (2026-11-18): the ASCII fonts' letters are drawn as one solid tone (from their brightest pixels, near grey snapped to grey so hues still apply), a gentle top-to-foot fall (title-size fonts get the full gold-leaf fall), and a 1 px dark outline, instead of the fonts' own speckled shading (`FontsLoader.IexPolishGlyph`, used by the glyph atlas; at text sizes above 100% the outline is added after sizing). Same UO fonts; Unicode fonts unchanged. Tried in game 2026-11-18: works.
 ## E. Keep-out list
 (C-E not reviewed yet)
 ## F. Graphics

@@ -654,7 +654,7 @@ namespace ClassicUO.Game
                     if (scale > 1.01f)
                     {
                         int percent = (int)MathF.Round(scale * 100f);
-                        int bearingX = entry.BearingX + (charBorder && IsUnicode ? 1 : 0); // without the edge
+                        int bearingX = entry.BearingX + (charBorder && IsUnicode || !IsUnicode && FontsLoader.IexPolish ? 1 : 0); // without the edge (IEX: polished ASCII letters carry one too)
                         float sx = (w + bearingX) * scale + 0.125f;
                         int ix = (int)MathF.Floor(sx);
                         int phase = (int)((sx - ix) * 4f) & 3;

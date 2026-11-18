@@ -3789,7 +3789,7 @@ namespace ClassicUO.Assets
         /// Renders a single ASCII glyph into a pixel buffer with hue applied per-pixel.
         /// Matches the original GeneratePixelsASCII hue logic (GetPartialHueColor or GetColor).
         /// </summary>
-        public SingleGlyphInfo RenderSingleGlyphASCII(byte font, char c, ushort hue = 0)
+        public SingleGlyphInfo RenderSingleGlyphASCII(byte font, char c, ushort hue = 0, bool iexOutline = true)
         {
             if (font >= FontCount)
                 return SingleGlyphInfo.Empty;
@@ -3814,6 +3814,11 @@ namespace ClassicUO.Assets
             }
 
             bool isPartial = font != 5 && font != 8 && !UnusePartialHue;
+
+            if (IexPolish) // IEX: polished lettering (see IexPolishGlyph)
+            {
+                return IexPolishGlyph(font, c, ref fcd, hue, isPartial, iexOutline);
+            }
             uint[] pData = new uint[dw * dh];
 
             for (int y = 0; y < dh; y++)
@@ -3841,6 +3846,198 @@ namespace ClassicUO.Assets
                 Height = dh,
                 BearingX = 0,
                 BearingY = GetFontOffsetY(font, (byte)c),
+                AdvanceWidth = dw
+            };
+        }
+
+        // ── IEX: polished lettering ──
+        //
+        // The ASCII fonts' letters are drawn with their own pixel shading (a highlight, the body and
+        // dark edge pixels), which at small sizes reads as speckle. Polished, each letter is one
+        // solid tone (its body colour), falling gently from a little brighter at the top to a
+        // little deeper at the foot (the large fonts, like the title font, get a full gold-leaf
+        // fall), with a clean dark outline a pixel wide. The fall is measured against the font's
+        // capital height, so every letter on a line shares it. Grey letters stay grey, so hues
+        // still colour them; the outline is a faint brown, which hues leave alone.
+
+        /// <summary>IEX: draw the ASCII fonts' letters polished (solid, shaded, outlined).</summary>
+        public static bool IexPolish = true;
+
+        const ushort IexOutlinePic = (2 << 10) | (1 << 5) | 1; // near black, not grey
+
+        readonly int[] _iexCapHeight = new int[32];
+
+        int IexCapHeight(byte font)
+        {
+            if (font >= _iexCapHeight.Length)
+            {
+                return 12;
+            }
+
+            if (_iexCapHeight[font] == 0)
+            {
+                ref FontCharacterData a = ref _fontDataASCII[font, GetASCIIIndex('A')];
+                _iexCapHeight[font] = Math.Max(4, a.Height + GetFontOffsetY(font, (byte)'A'));
+            }
+
+            return _iexCapHeight[font];
+        }
+
+        static int IexBright(ushort pic) => Math.Max((pic >> 10) & 31, Math.Max((pic >> 5) & 31, pic & 31));
+
+        static ushort IexScale(ushort pic, float k)
+        {
+            int r = Math.Clamp((int)MathF.Round(((pic >> 10) & 31) * k), 0, 31);
+            int g = Math.Clamp((int)MathF.Round(((pic >> 5) & 31) * k), 0, 31);
+            int b = Math.Clamp((int)MathF.Round((pic & 31) * k), 0, 31);
+            ushort p = (ushort)((r << 10) | (g << 5) | b);
+            return p == 0 ? (ushort)0x0421 : p; // 0 would be a hole
+        }
+
+        private SingleGlyphInfo IexPolishGlyph(byte font, char c, ref FontCharacterData fcd, ushort hue, bool isPartial, bool outline)
+        {
+            int dw = fcd.Width, dh = fcd.Height;
+            ushort[] src = fcd.Data;
+
+            // the body colour: the commonest of the glyph's brightest pixels
+            int max = 0;
+
+            for (int i = 0; i < src.Length; i++)
+            {
+                if (src[i] != 0)
+                {
+                    max = Math.Max(max, IexBright(src[i]));
+                }
+            }
+
+            var counts = new Dictionary<ushort, int>();
+            ushort body = 0;
+            int best = 0;
+
+            for (int i = 0; i < src.Length; i++)
+            {
+                ushort p = src[i];
+
+                if (p != 0 && IexBright(p) * 10 >= max * 8)
+                {
+                    counts.TryGetValue(p, out int n);
+                    counts[p] = ++n;
+
+                    if (n > best)
+                    {
+                        best = n;
+                        body = p;
+                    }
+                }
+            }
+
+            if (body == 0)
+            {
+                body = 0x7FFF;
+            }
+
+            // near grey is made exactly grey, or hues would pass it by
+            int br = (body >> 10) & 31, bg = (body >> 5) & 31, bb = body & 31;
+
+            if (Math.Max(br, Math.Max(bg, bb)) - Math.Min(br, Math.Min(bg, bb)) <= 3)
+            {
+                int m = Math.Max(br, Math.Max(bg, bb));
+                body = (ushort)((m << 10) | (m << 5) | m);
+            }
+
+            int bodyBright = IexBright(body);
+            int offY = GetFontOffsetY(font, (byte)c);
+            int cap = IexCapHeight(font);
+            bool large = cap >= 16;
+
+            int pad = outline ? 1 : 0;
+            int w = dw + pad * 2, h = dh + pad * 2;
+            var ink = new bool[w * h];
+            var pics = new ushort[w * h];
+
+            for (int y = 0; y < dh; y++)
+            {
+                float t = Math.Clamp((offY + y) / (float)Math.Max(1, cap - 1), 0f, 1.15f);
+                float k = large
+                    ? (t < 0.5f ? 1.3f - 0.3f * (t * 2) : 1f - 0.4f * Math.Min(1f, (t - 0.5f) * 2))  // gold leaf
+                    : 1.05f - 0.22f * Math.Min(1f, t);                                                    // gentle
+                ushort shaded = IexScale(body, k);
+
+                for (int x = 0; x < dw; x++)
+                {
+                    ushort p = src[y * dw + x];
+
+                    if (p == 0)
+                    {
+                        continue;
+                    }
+
+                    int i = (y + pad) * w + x + pad;
+
+                    // the font's own dark edge pixels become the outline; the rest is solid body
+                    if (IexBright(p) * 100 < bodyBright * 45)
+                    {
+                        if (outline) // without one (sized letters get theirs after sizing), dropped
+                        {
+                            pics[i] = IexOutlinePic;
+                        }
+                    }
+                    else
+                    {
+                        ink[i] = true;
+                        pics[i] = shaded;
+                    }
+                }
+            }
+
+            if (outline)
+            {
+                for (int y = 0; y < h; y++)
+                {
+                    for (int x = 0; x < w; x++)
+                    {
+                        int i = y * w + x;
+
+                        if (pics[i] != 0)
+                        {
+                            continue;
+                        }
+
+                        for (int ny = Math.Max(0, y - 1); ny <= Math.Min(h - 1, y + 1) && pics[i] == 0; ny++)
+                        {
+                            for (int nx = Math.Max(0, x - 1); nx <= Math.Min(w - 1, x + 1); nx++)
+                            {
+                                if (ink[ny * w + nx])
+                                {
+                                    pics[i] = IexOutlinePic;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            uint[] pData = new uint[w * h];
+
+            for (int i = 0; i < pics.Length; i++)
+            {
+                ushort p = pics[i];
+
+                if (p != 0)
+                {
+                    uint pcl = isPartial ? FileManager.Hues.GetPartialHueColor(p, hue) : FileManager.Hues.GetColor(p, hue);
+                    pData[i] = pcl | 0xFF_00_00_00;
+                }
+            }
+
+            return new SingleGlyphInfo
+            {
+                Data = pData,
+                Width = w,
+                Height = h,
+                BearingX = -pad,
+                BearingY = offY - pad,
                 AdvanceWidth = dw
             };
         }
