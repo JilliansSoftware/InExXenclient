@@ -36,8 +36,9 @@ namespace ClassicUO.IEX
             }
 
             int kind = None;
+            string name = data.Name?.ToLowerInvariant() ?? "";
 
-            if (StaticFilters.IsRock(graphic))
+            if (StaticFilters.IsRock(graphic) || Rigid(name))
             {
                 kind = None;
             }
@@ -49,19 +50,25 @@ namespace ClassicUO.IEX
             {
                 kind = Low;
             }
-            else if (data.Name is string name)
+            else if ((name.Contains("tree") || name.Contains("palm")) && data.Height >= 10)
             {
-                name = name.ToLowerInvariant();
-
-                if ((name.Contains("tree") || name.Contains("palm")) && !name.Contains("stump") && data.Height >= 10)
-                {
-                    kind = Tree;
-                }
+                kind = Tree;
+            }
+            else if (name.Contains("pampas grass") || name.Contains("reeds") || name.Contains("rushes"))
+            {
+                kind = Low;
             }
 
             _kinds[graphic] = (sbyte)(kind + 1);
             return kind;
         }
+
+        // Things on the stock plant lists (or flagged foliage) that are dead or stiff: fallen logs,
+        // stumps, mushrooms, cactus, floating lily pads, mud, and ships' masts and sails.
+        static bool Rigid(string name) =>
+            name.Contains("log") || name.Contains("stump") || name.Contains("mushroom") || name.Contains("cactus")
+            || name.Contains("lily") || name.Contains("lilly") || name.Contains("muck")
+            || name.Contains("mast") || name.Contains("sail") || name.Contains("spar");
 
         /// <summary>The kind to draw bent right now (None when the option is off).</summary>
         public static int Kind(ushort graphic, ref StaticTiles data) => On ? Plant(graphic, ref data) : None;
@@ -96,7 +103,7 @@ namespace ClassicUO.IEX
             float t = Time.Ticks / 1000f;
             float phase = tileX * 0.37f + tileY * 0.23f; // gusts travel across the map
             int height = art.UV.Height;
-            int bands = kind == Tree ? Math.Clamp(height / 24, 1, 8) : 2;
+            int bands = kind == Tree ? Math.Clamp(height / 24, 1, 8) : 3;
             Span<float> shifts = stackalloc float[bands + 1];
 
             if (kind == Tree)
@@ -113,14 +120,17 @@ namespace ClassicUO.IEX
             }
             else
             {
-                // Grass flutters quicker and bends straight from the root.
+                // Grass and flowers flutter quicker. Their roots sit low in the art, so the bend is
+                // measured from near its bottom: the tip moves about 3 px whatever the plant's size.
                 float gust = MathF.Sin(t * 1.5f + phase) * 0.7f + MathF.Sin(t * 3.7f + phase * 2.3f) * 0.3f;
-                float amount = gust * Wind * 1.5f / 32f; // about 1.5 px at 32 px tall
+                float root = Math.Min(10f, height * 0.25f);
+                float span = Math.Max(height - root, 1f);
 
                 for (int i = 0; i <= bands; i++)
                 {
-                    float above = Math.Clamp(height - 22 - height * i / (float)bands, 0f, 64f);
-                    shifts[i] = amount * above;
+                    float above = Math.Max(height - root - height * i / (float)bands, 0f);
+                    float f = above / span;
+                    shifts[i] = gust * Wind * 3f * f * f; // curved: stiff at the root, loose at the tip
                 }
             }
 
