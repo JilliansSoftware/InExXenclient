@@ -192,6 +192,7 @@ namespace ClassicUO
             FileManager.Load(Settings.GlobalSettings.UseVerdata, Settings.GlobalSettings.Language, Settings.GlobalSettings.MapsLayouts);
 
             StaticFilters.Load(FileManager.TileData);
+            ClassicUO.IEX.IexTreeNames.Apply(FileManager.TileData); // IEX: jungle tree names
             BuffTable.Load();
             ChairTable.Load();
 
