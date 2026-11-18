@@ -91,7 +91,7 @@ namespace ClassicUO.Game.Data
                         "Light", // IEX: Night Sight's slot holds Light; Night Sight is 4th circle (IEX/IexSpellbook.cs)
                         6,
                         0x1B5D,
-                        "In Lor",
+                        "In Ex Lor", // IEX: Night Sight keeps "In Lor"; the overhead spell name is looked up by these words
                         TargetType.Beneficial,
                         Reagents.SpidersSilk,
                         Reagents.SulfurousAsh
