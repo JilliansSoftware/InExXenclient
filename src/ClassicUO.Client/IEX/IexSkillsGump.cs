@@ -41,7 +41,10 @@ namespace ClassicUO.IEX
         StbTextBox _searchBox, _renameBox;
         ScrollArea _list;
         DataBox _rows;
-        Label _total;
+        Label _totalSum, _totalCap;   // the skill total, on its own plate (PlaceTotal)
+        ResizePic _totalPlate, _titlePlate;
+        GumpPic _titlePic;
+        int _toolbarY;
 
         bool _resizing;
         Point _resizeMouse, _resizeSize;
@@ -76,12 +79,13 @@ namespace ClassicUO.IEX
             Add(new ResizePic(0x0E10) { Width = Width, Height = Height });
 
             // Title plate
-            GumpPic title = IexDarkUi.TitlePic("Skills");
+            GumpPic title = _titlePic = IexDarkUi.TitlePic("Skills");
+            _titlePlate = null;
             int plateH = 0;
 
             if (title != null)
             {
-                var plate = new ResizePic(0x0BB8) { Width = title.Width + 36, Height = title.Height + 10, AcceptMouseInput = false };
+                var plate = _titlePlate = new ResizePic(0x0BB8) { Width = title.Width + 36, Height = title.Height + 10, AcceptMouseInput = false };
                 plate.X = (Width - plate.Width) / 2;
                 plate.Y = Frame - 2;
                 title.X = plate.X + 18;
@@ -91,19 +95,19 @@ namespace ClassicUO.IEX
                 plateH = plate.Height;
             }
 
-            _total = new Label(TotalText(), true, IexDarkUi.AccentHue, font: 1) { AcceptMouseInput = false };
-
-            if (Wide)
-            {
-                _total.X = Width - Frame - 8 - _total.Width;
-                _total.Y = Frame + 4;
-            }
-
-            Add(_total);
+            // The total on its own framed plate: beside the title when wide, at the end of the
+            // toolbar when narrow (PlaceTotal fits it again whenever the number changes).
+            _totalPlate = new ResizePic(0x0BB8) { AcceptMouseInput = false };
+            _totalSum = new Label(string.Empty, true, IexDarkUi.AccentHue, font: 1) { AcceptMouseInput = false };
+            _totalCap = new Label(string.Empty, true, IexDarkUi.DimHue, font: 1) { AcceptMouseInput = false };
+            Add(_totalPlate);
+            Add(_totalSum);
+            Add(_totalCap);
 
             // Toolbar: search, then Real/Base/Cap (tabs when wide, a dropdown when narrow).
-            int y = Frame + plateH + 6;
-            int searchW = Wide ? 120 : Width - 2 * Frame - 18 - _total.Width;
+            int y = _toolbarY = Frame + plateH + 6;
+            PlaceTotal();
+            int searchW = Wide ? 120 : _totalPlate.X - Frame - 4 - 8;
             AddSearch(Frame + 4, y, searchW);
 
             if (Wide)
@@ -122,8 +126,6 @@ namespace ClassicUO.IEX
             }
             else
             {
-                _total.X = Width - Frame - 6 - _total.Width;
-                _total.Y = y + 3;
                 y += 24;
 
                 var views = new List<string> { "Usable", "All" };
@@ -361,7 +363,7 @@ namespace ClassicUO.IEX
             }
 
             _rows.Height = Math.Max(1, y);
-            _total.Text = TotalText();
+            PlaceTotal();
         }
 
         Control Row(Skill skill, int y, int w)
@@ -433,10 +435,66 @@ namespace ClassicUO.IEX
 
         static ushort LockArt(Lock l) => l == Lock.Down ? IexDarkArt.LockDown : l == Lock.Locked ? IexDarkArt.LockLocked : IexDarkArt.LockUp;
 
-        string TotalText()
+        const ushort OverCapHue = 0x0021; // red: more than the cap allows
+
+        // The total's plate, fitted to its text: right of the title when the window is wide (the
+        // title steps left if they would meet; the decimal goes first), at the end of the toolbar
+        // row when narrow. Over the cap, the total turns red.
+        void PlaceTotal()
         {
+            if (_totalPlate == null || _totalSum == null || _totalSum.IsDisposed)
+            {
+                return;
+            }
+
             float sum = World.Player?.Skills?.Where(s => s != null).Sum(s => s.Value) ?? 0f;
-            return $"{sum:F1} / {TotalCap:F0}";
+            _totalSum.Hue = sum > TotalCap + 0.05f ? OverCapHue : IexDarkUi.AccentHue;
+            _totalCap.Text = $" / {TotalCap:F0}";
+
+            const int h = 22, padX = 10;
+            int w = 0, x = 0, y;
+
+            for (int pass = 0; pass < 2; pass++)
+            {
+                bool compact = pass == 1 || !Wide;
+                _totalSum.Text = compact ? $"{sum:F0}" : $"{sum:F1}";
+                w = _totalSum.Width + _totalCap.Width + padX * 2;
+                x = Width - Frame - 4 - w;
+
+                if (!Wide || _titlePlate == null || x >= _titlePlate.X + _titlePlate.Width + 8 || compact)
+                {
+                    break;
+                }
+            }
+
+            if (Wide)
+            {
+                if (_titlePlate != null)
+                {
+                    int room = x - 8 - _titlePlate.Width;
+                    int centred = (Width - _titlePlate.Width) / 2;
+                    _titlePlate.X = Math.Max(Frame + 4, Math.Min(centred, room));
+                    _titlePic.X = _titlePlate.X + 18;
+                    y = _titlePlate.Y + (_titlePlate.Height - h) / 2;
+                }
+                else
+                {
+                    y = Frame;
+                }
+            }
+            else
+            {
+                y = _toolbarY - 1;
+            }
+
+            _totalPlate.X = x;
+            _totalPlate.Y = y;
+            _totalPlate.Width = w;
+            _totalPlate.Height = h;
+            _totalSum.X = x + padX;
+            _totalSum.Y = y + (h - _totalSum.Height) / 2;
+            _totalCap.X = _totalSum.X + _totalSum.Width;
+            _totalCap.Y = y + (h - _totalCap.Height) / 2;
         }
 
         /// <summary>Called when the server sends new skill values.</summary>
