@@ -5,6 +5,7 @@
 //   - a search box that filters the current tab's lines as you type
 //   - the "Text size" option (lines rewrap to the window), the window theme (Dark / Light
 //     frame, colours kept readable), resizable from the bottom-right corner
+//   - a "Journal" title plate and margins clear of the frame's trim, as the skills window
 
 using System;
 using System.Collections.Generic;
@@ -26,8 +27,10 @@ namespace ClassicUO.IEX
 {
     internal sealed class IexJournal : Gump
     {
-        const int MinWidth = 260, MinHeight = 140;
-        const int Frame = 10, TabHeight = 20, SearchWidth = 140, ScrollWidth = 16;
+        const int MinWidth = 260, MinHeight = 180;
+        // Inset clear of the frame's gold trim, as the skills window (IexSkillsGump: Frame 13 + 4).
+        const int Frame = 17, Bottom = 21, TabHeight = 20, TabGap = 5, SearchWidth = 140, ScrollWidth = 16;
+        const int LineGap = 2; // between journal entries
 
         static readonly MessageType[] MenuTypes =
         {
@@ -103,20 +106,40 @@ namespace ClassicUO.IEX
 
             foreach (string name in Tabs.Keys)
             {
-                tabsWidth += Client.Game.UO.FileManager.Fonts.GetWidthUnicode(1, name) + 14 + 3;
+                tabsWidth += Client.Game.UO.FileManager.Fonts.GetWidthUnicode(1, name) + 16 + TabGap;
             }
 
             Width = _lastWidth = Math.Max(Width, tabsWidth);
 
             Add(new ResizePic(0x0E10) { Width = Width, Height = Height });
 
+            // Title plate, as the skills window's.
+            int y = Frame - 6;
+            GumpPic title = IexDarkUi.TitlePic("Journal");
+
+            if (title != null)
+            {
+                var plate = new ResizePic(0x0BB8) { Width = title.Width + 36, Height = title.Height + 10, AcceptMouseInput = false };
+                plate.X = (Width - plate.Width) / 2;
+                plate.Y = y;
+                title.X = plate.X + 18;
+                title.Y = plate.Y + 5;
+                Add(plate);
+                Add(title);
+                y += plate.Height + 8;
+            }
+            else
+            {
+                y = Frame;
+            }
+
             // Tabs, then the + button; the search box goes at the end of the row when it fits,
             // otherwise on a row of its own.
-            int x = Frame, y = Frame;
+            int x = Frame;
 
             foreach (string name in Tabs.Keys.ToArray())
             {
-                x += AddTab(x, y, name) + 3;
+                x += AddTab(x, y, name) + TabGap;
             }
 
             AddPlus(x, y);
@@ -125,17 +148,17 @@ namespace ClassicUO.IEX
             if (Width - Frame - SearchWidth - 6 >= x)
             {
                 AddSearch(Width - Frame - SearchWidth, y, SearchWidth);
-                y += TabHeight + 6;
+                y += TabHeight + 8;
             }
             else
             {
-                y += TabHeight + 4;
-                AddSearch(Frame, y, Width - 2 * Frame);
                 y += TabHeight + 6;
+                AddSearch(Frame, y, Width - 2 * Frame);
+                y += TabHeight + 8;
             }
 
-            // Text panel and scroll bar.
-            int panelW = Width - 2 * Frame, panelH = Height - y - Frame;
+            // Text panel and scroll bar, with room inside the panel's edge.
+            int panelW = Width - 2 * Frame, panelH = Height - y - Bottom;
 
             if (IexDarkUi.Active)
             {
@@ -146,8 +169,8 @@ namespace ClassicUO.IEX
                 Add(new AlphaBlendControl(0.7f) { X = Frame, Y = y, Width = panelW, Height = panelH, Hue = 0, AcceptMouseInput = false });
             }
 
-            _scroll = new ScrollBar(Frame + panelW - ScrollWidth - 2, y + 2, panelH - 4) { MinValue = 0 };
-            _text = new Lines(this, Frame + 5, y + 4, panelW - ScrollWidth - 12, panelH - 8);
+            _scroll = new ScrollBar(Frame + panelW - ScrollWidth - 4, y + 4, panelH - 8) { MinValue = 0 };
+            _text = new Lines(this, Frame + 8, y + 6, panelW - ScrollWidth - 8 - 4 - 8, panelH - 12);
             Add(_text);
             Add(_scroll);
             _text.Measure();
@@ -179,9 +202,9 @@ namespace ClassicUO.IEX
             bool selected = name == _tab;
             ushort hue = IexDarkUi.Active ? (selected ? IexDarkUi.AccentHue : IexDarkUi.DimHue) : (selected ? (ushort)0x0035 : (ushort)0x0481);
             var label = new Label(name, true, hue, font: 1) { AcceptMouseInput = false };
-            int w = label.Width + 14;
+            int w = label.Width + 16;
             Add(new ResizePic(selected ? (ushort)0x0E10 : (ushort)0x0BB8) { X = x, Y = y, Width = w, Height = TabHeight, AcceptMouseInput = false });
-            label.X = x + 7;
+            label.X = x + 8;
             label.Y = y + 2;
             Add(label);
 
@@ -523,10 +546,10 @@ namespace ClassicUO.IEX
 
                     line.Prepare(Width, _scale, out RenderedText hour, out RenderedText body);
                     _shown.Add((hour, body));
-                    total += (int)(body.Height * _scale);
+                    total += (int)(body.Height * _scale) + LineGap;
                 }
 
-                scroll.MaxValue = Math.Max(0, total - Height);
+                scroll.MaxValue = Math.Max(0, total - LineGap - Height);
                 scroll.IsVisible = scroll.MaxValue > 0;
 
                 if (atBottom || scroll.Value > scroll.MaxValue)
@@ -563,7 +586,7 @@ namespace ClassicUO.IEX
                             body.Draw(batcher, x + (int)(hour.Width * scale), y + top, layerDepth, 1f, 0, scale);
                         }
 
-                        top += h;
+                        top += h + LineGap;
 
                         if (top >= Height)
                         {
