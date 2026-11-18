@@ -71,7 +71,7 @@ namespace ClassicUO.IEX
                             {
                                 land = l;
                             }
-                            else if (o is Static s && IsWaterStatic(s.Graphic) && !s.IsDestroyed)
+                            else if (o is Static s && IsWaterStatic(s.Graphic) && !IsOutline(s.Graphic) && !s.IsDestroyed)
                             {
                                 DrawShallows(batcher, world, s, swell, t, storm, offsetX, offsetY); // the shore's water pieces
                             }
@@ -224,6 +224,10 @@ namespace ClassicUO.IEX
         private const ushort SHALLOW_FIRST = 0x1796, SHALLOW_LAST = 0x17B2;
 
         private static bool IsWaterStatic(ushort graphic) => graphic >= SHALLOW_FIRST && graphic <= SHALLOW_LAST;
+
+        // Thin edge lines in that range, not water: left exactly as drawn (recoloured or pushed,
+        // they show as bright chevrons and dark lines between the shallows and deep water).
+        private static bool IsOutline(ushort graphic) => graphic == 0x1796 || graphic == 0x17AD || graphic == 0x17AE;
 
         // Water ground or a water piece. A tile that isn't loaded counts as water, so the edge of
         // what the client knows about doesn't look like a shore.
