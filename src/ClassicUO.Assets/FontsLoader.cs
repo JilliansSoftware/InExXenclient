@@ -3781,6 +3781,7 @@ namespace ClassicUO.Assets
             public int BearingX;
             public int BearingY;
             public int AdvanceWidth;
+            public bool IexDark; // IEX: a dark, engraved letter (no black edge when sized)
 
             public static readonly SingleGlyphInfo Empty = new SingleGlyphInfo();
         }
@@ -3898,6 +3899,21 @@ namespace ClassicUO.Assets
         {
             int dw = fcd.Width, dh = fcd.Height;
             ushort[] src = fcd.Data;
+
+            // Dark letters (meant for parchment, stone and pages) are engraved instead: an outline
+            // would run into them. Judged on the glyph's commonest pixel once hued.
+            ushort common = IexGrey(IexCommonest(src, 0));
+
+            if (common != 0)
+            {
+                uint hc = isPartial ? FileManager.Hues.GetPartialHueColor(common, hue) : FileManager.Hues.GetColor(common, hue);
+                float lum = (0.299f * (hc & 0xFF) + 0.587f * ((hc >> 8) & 0xFF) + 0.114f * ((hc >> 16) & 0xFF)) / 255f;
+
+                if (lum < 0.45f)
+                {
+                    return IexEngraveGlyph(font, c, ref fcd, common, hue, isPartial, outline);
+                }
+            }
 
             // the body colour: the commonest of the glyph's brightest pixels
             int max = 0;
@@ -4039,6 +4055,98 @@ namespace ClassicUO.Assets
                 BearingX = -pad,
                 BearingY = offY - pad,
                 AdvanceWidth = dw
+            };
+        }
+
+        // The commonest non-empty pixel (brighter than minBright).
+        static ushort IexCommonest(ushort[] src, int minBright)
+        {
+            var counts = new Dictionary<ushort, int>();
+            ushort best = 0;
+            int bestN = 0;
+
+            foreach (ushort p in src)
+            {
+                if (p != 0 && IexBright(p) >= minBright)
+                {
+                    counts.TryGetValue(p, out int n);
+                    counts[p] = ++n;
+
+                    if (n > bestN)
+                    {
+                        bestN = n;
+                        best = p;
+                    }
+                }
+            }
+
+            return best;
+        }
+
+        // Near grey made exactly grey, so hues still apply to it.
+        static ushort IexGrey(ushort p)
+        {
+            int r = (p >> 10) & 31, g = (p >> 5) & 31, b = p & 31;
+            int hi = Math.Max(r, Math.Max(g, b)), lo = Math.Min(r, Math.Min(g, b));
+            return p != 0 && hi - lo <= 3 ? (ushort)((hi << 10) | (hi << 5) | hi) : p;
+        }
+
+        // Dark letters: one solid tone (the font's light highlight pixels dropped), with a faint
+        // light line under each stroke, as if pressed into the parchment or cut into the stone.
+        private SingleGlyphInfo IexEngraveGlyph(byte font, char c, ref FontCharacterData fcd, ushort body, ushort hue, bool isPartial, bool padded)
+        {
+            int dw = fcd.Width, dh = fcd.Height;
+            ushort[] src = fcd.Data;
+            int bodyBright = IexBright(body);
+            int offY = GetFontOffsetY(font, (byte)c);
+
+            int pad = padded ? 1 : 0;
+            int w = dw + pad * 2, h = dh + pad * 2;
+            var ink = new bool[w * h];
+
+            for (int y = 0; y < dh; y++)
+            {
+                for (int x = 0; x < dw; x++)
+                {
+                    ushort p = src[y * dw + x];
+
+                    if (p != 0 && IexBright(p) <= bodyBright + 4)
+                    {
+                        ink[(y + pad) * w + x + pad] = true;
+                    }
+                }
+            }
+
+            uint pcl = (isPartial ? FileManager.Hues.GetPartialHueColor(body, hue) : FileManager.Hues.GetColor(body, hue)) | 0xFF_00_00_00;
+            const uint Lip = (140u << 24) | (130u << 16) | (137u << 8) | 140u; // light (255, 250, 236) at 55%, premultiplied
+            uint[] pData = new uint[w * h];
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    int i = y * w + x;
+
+                    if (ink[i])
+                    {
+                        pData[i] = pcl;
+                    }
+                    else if (padded && y > 0 && ink[i - w])
+                    {
+                        pData[i] = Lip;
+                    }
+                }
+            }
+
+            return new SingleGlyphInfo
+            {
+                Data = pData,
+                Width = w,
+                Height = h,
+                BearingX = -pad,
+                BearingY = offY - pad,
+                AdvanceWidth = dw,
+                IexDark = true
             };
         }
 

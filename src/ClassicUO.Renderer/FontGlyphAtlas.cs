@@ -189,7 +189,7 @@ namespace ClassicUO.Renderer
                 return result;
             }
 
-            uint[] px = SizeGlyph(g, hasBorder && isUnicode || !isUnicode && FontsLoader.IexPolish, s, fx, out int bw, out int bh, out int pad); // IEX: polished ASCII letters are outlined after sizing
+            uint[] px = SizeGlyph(g, hasBorder && isUnicode || !isUnicode && FontsLoader.IexPolish && !g.IexDark, s, fx, out int bw, out int bh, out int pad); // IEX: polished light ASCII letters are outlined after sizing (dark ones are engraved, no edge)
 
             result.Texture = _atlas.AddSprite(px, bw, bh, out var uv);
             result.UV = uv;
