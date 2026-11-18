@@ -68,6 +68,7 @@ namespace ClassicUO.Game.UI.Gumps
         private Checkbox _iexModernShop; // IEX: shop window
         private Checkbox _iexSpellRange; // IEX: spell range preview
         private Checkbox _iexCompactBars; // IEX: compact health bars
+        private Checkbox _iexBarNumbers; // IEX: their numbers always shown
         private Checkbox _iexEnhancedLighting; // IEX: enhanced lighting
         private Checkbox _iexEnhancedWeather; // IEX: enhanced weather and water
         private Checkbox _iexSway; // IEX: trees and grass in the wind
@@ -1041,6 +1042,7 @@ namespace ClassicUO.Game.UI.Gumps
 
             // IEX: the compact style for custom bars (IEX/IexHealthBar.cs)
             section3.Add(_iexCompactBars = AddCheckBox(null, "Compact style: resizable, with mana and stamina", _currentProfile.IexCompactBars, 0, 0));
+            section3.Add(_iexBarNumbers = AddCheckBox(null, "Compact style: always show the numbers (else on mouse over)", _currentProfile.IexBarNumbers, 0, 0));
 
             section3.Add
             (
@@ -3750,6 +3752,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _customBars.IsChecked = false;
                     _customBarsBBG.IsChecked = false;
                     _iexCompactBars.IsChecked = false;
+                    _iexBarNumbers.IsChecked = false;
                     _autoOpenCorpse.IsChecked = false;
                     _autoOpenDoors.IsChecked = false;
                     _smoothDoors.IsChecked = false;
@@ -4439,6 +4442,7 @@ namespace ClassicUO.Game.UI.Gumps
             bool iexBarStyle = _currentProfile.IexCompactBars != _iexCompactBars.IsChecked; // IEX
             _currentProfile.CustomBarsToggled = _customBars.IsChecked;
             _currentProfile.IexCompactBars = _iexCompactBars.IsChecked;
+            _currentProfile.IexBarNumbers = _iexBarNumbers.IsChecked; // IEX
 
             if (updateHealthBars || iexBarStyle) // IEX: swap every open bar to the chosen kind
             {

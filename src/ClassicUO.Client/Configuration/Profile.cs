@@ -265,10 +265,11 @@ namespace ClassicUO.Configuration
         public int IexTheme { get; set; } = -1; // IEX: window theme, 0 original, 1 dark, 2 light (-1: not chosen, follow IexDarkUi), see IEX/IexDarkUi.cs
         public bool IexDarkUi { get; set; } // IEX: the old dark windows switch, kept so earlier profiles keep their choice
         public bool IexModernShop { get; set; } // IEX: the shard's shop window (with the dark or light theme), IEX/IexShopGump.cs; on for new characters
-        public Point IexShopSize { get; set; } = new Point(580, 420); // IEX: its size
+        [JsonConverter(typeof(Point2Converter))] public Point IexShopSize { get; set; } = new Point(580, 420); // IEX: its size
         public bool IexCompactBars { get; set; } // IEX: "custom" health bars in the compact, resizable style (IEX/IexHealthBar.cs); on for new characters
-        public Point IexBarSizeSelf { get; set; } = new Point(180, 68); // IEX: your compact bar's size
-        public Point IexBarSizeOther { get; set; } = new Point(180, 36); // IEX: everyone else's
+        [JsonConverter(typeof(Point2Converter))] public Point IexBarSizeSelf { get; set; } = new Point(150, 90); // IEX: your compact bar's size
+        [JsonConverter(typeof(Point2Converter))] public Point IexBarSizeOther { get; set; } = new Point(150, 53); // IEX: everyone else's
+        public bool IexBarNumbers { get; set; } // IEX: numbers always shown on the compact bars (else only while the mouse is over one)
         public bool IexSpellBarOffered { get; set; } // IEX: the first spell bar was opened (IEX/IexSpellBar.cs)
         public bool IexSpellRange { get; set; } = true; // IEX: range ring and area preview while a spell targets (IEX/IexSpellRange.cs)
         public bool IexModernSkills { get; set; } = true; // IEX: the shard's skills window (with the dark or light theme), IEX/IexSkillsGump.cs

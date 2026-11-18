@@ -70,6 +70,11 @@ namespace ClassicUO.IEX
             WantUpdateSize = false;
 
             Point size = ProfileManager.CurrentProfile.IexShopSize;
+
+            if (size.X <= 0 || size.Y <= 0) // earlier builds saved the size empty ({}), read back as 0,0
+            {
+                size = new Point(580, 420);
+            }
             Width = Math.Max(MinWidth, size.X);
             Height = Math.Max(MinHeight, size.Y);
             Build();
