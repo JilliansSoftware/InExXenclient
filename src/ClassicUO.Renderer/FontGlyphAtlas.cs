@@ -41,10 +41,11 @@ namespace ClassicUO.Renderer
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static long MakeKey(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic)
+        private static long MakeKey(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, bool plain = false)
         {
-            // Pack into long: font(8) | char(16) | unicode(1) | border(1) | solid(1) | italic(1)
-            return ((long)font << 20)
+            // Pack into long: font(8) | char(16) | unicode(1) | border(1) | solid(1) | italic(1); IEX: plain (bit 32)
+            return (plain ? 1L << 32 : 0L)
+                 | ((long)font << 20)
                  | ((long)(ushort)character << 4)
                  | (isUnicode ? 8L : 0L)
                  | (hasBorder ? 4L : 0L)
@@ -56,15 +57,15 @@ namespace ClassicUO.Renderer
         /// Get a glyph entry without baked color (color = 0, rendered as white for Unicode).
         /// Used for non-HTML text where hue is applied via shader at draw time.
         /// </summary>
-        public ref readonly GlyphAtlasEntry GetEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic)
+        public ref readonly GlyphAtlasEntry GetEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, bool plain = false)
         {
-            long key = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic);
+            long key = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic, plain);
 
             ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(_cache, key, out bool exists);
 
             if (!exists)
             {
-                entry = CreateEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, 0);
+                entry = CreateEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, 0, plain);
             }
 
             return ref entry;
@@ -74,27 +75,27 @@ namespace ClassicUO.Renderer
         /// Get a glyph entry with a specific baked ARGB color.
         /// Used for HTML text where each character can have a different color.
         /// </summary>
-        public GlyphAtlasEntry GetColoredEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint color)
+        public GlyphAtlasEntry GetColoredEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint color, bool plain = false)
         {
             if (color == 0)
             {
-                return GetEntry(font, character, isUnicode, hasBorder, isSolid, isItalic);
+                return GetEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, plain);
             }
 
-            long baseKey = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic);
+            long baseKey = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic, plain);
             var key = (baseKey, color);
 
             ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(_coloredCache, key, out bool exists);
 
             if (!exists)
             {
-                entry = CreateEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, color);
+                entry = CreateEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, color, plain);
             }
 
             return entry;
         }
 
-        private GlyphAtlasEntry CreateEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint colorOrHue)
+        private GlyphAtlasEntry CreateEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint colorOrHue, bool plain = false)
         {
             FontsLoader.SingleGlyphInfo glyphInfo;
 
@@ -105,7 +106,7 @@ namespace ClassicUO.Renderer
             else
             {
                 // For ASCII, colorOrHue is the hue index (ushort)
-                glyphInfo = _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue);
+                glyphInfo = _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue, polish: !plain); // IEX: plain = the original letters
             }
 
             if (glyphInfo.Data == null || glyphInfo.Data.Length == 0 || glyphInfo.Width <= 0 || glyphInfo.Height <= 0)
@@ -155,27 +156,27 @@ namespace ClassicUO.Renderer
         /// GlyphHeight are the sized bitmap, drawn 1:1 with its top-left Pad pixels before the
         /// glyph. <paramref name="phaseX"/> is the quarter pixel (0..3) of the glyph's left side.
         /// </summary>
-        public GlyphAtlasEntry GetSizedEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint color, int percent, int phaseX)
+        public GlyphAtlasEntry GetSizedEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint color, int percent, int phaseX, bool plain = false)
         {
-            long baseKey = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic);
+            long baseKey = MakeKey(font, character, isUnicode, hasBorder, isSolid, isItalic, plain);
             var key = (baseKey, color, (percent << 2) | (phaseX & 3));
 
             ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(_sizedCache, key, out bool exists);
 
             if (!exists)
             {
-                entry = CreateSizedEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, color, percent / 100f, (phaseX & 3) / 4f);
+                entry = CreateSizedEntry(font, character, isUnicode, hasBorder, isSolid, isItalic, color, percent / 100f, (phaseX & 3) / 4f, plain);
             }
 
             return entry;
         }
 
-        private GlyphAtlasEntry CreateSizedEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint colorOrHue, float s, float fx)
+        private GlyphAtlasEntry CreateSizedEntry(byte font, char character, bool isUnicode, bool hasBorder, bool isSolid, bool isItalic, uint colorOrHue, float s, float fx, bool plain = false)
         {
             // The edge is added after sizing, so start from the glyph without it.
             FontsLoader.SingleGlyphInfo g = isUnicode
                 ? _fontsLoader.RenderSingleGlyphUnicode(font, character, false, isSolid, isItalic, colorOrHue)
-                : _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue, iexOutline: false);
+                : _fontsLoader.RenderSingleGlyphASCII(font, character, (ushort)colorOrHue, iexOutline: false, polish: !plain);
 
             var result = new GlyphAtlasEntry
             {
@@ -189,7 +190,7 @@ namespace ClassicUO.Renderer
                 return result;
             }
 
-            uint[] px = SizeGlyph(g, hasBorder && isUnicode || !isUnicode && FontsLoader.IexPolish && !g.IexDark, s, fx, out int bw, out int bh, out int pad); // IEX: polished light ASCII letters are outlined after sizing (dark ones are engraved, no edge)
+            uint[] px = SizeGlyph(g, hasBorder && isUnicode || !isUnicode && FontsLoader.IexPolish && !plain && !g.IexDark, s, fx, out int bw, out int bh, out int pad); // IEX: polished light ASCII letters are outlined after sizing (dark ones are engraved, no edge)
 
             result.Texture = _atlas.AddSprite(px, bw, bh, out var uv);
             result.UV = uv;

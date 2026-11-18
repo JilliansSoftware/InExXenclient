@@ -1409,7 +1409,7 @@ namespace ClassicUO.Game.Scenes
             false,
             FontStyle.BlackBorder,
             TEXT_ALIGN_TYPE.TS_LEFT
-        );
+        ).IexAsPlain(); // IEX: world text keeps the original letters
 
         private bool CheckDeathScreen(UltimaBatcher2D batcher)
         {

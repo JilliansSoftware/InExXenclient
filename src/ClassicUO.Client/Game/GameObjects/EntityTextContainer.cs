@@ -85,7 +85,7 @@ namespace ClassicUO.Game.GameObjects
                 (ushort)(ReferenceEquals(Parent, _world.Player) ? 0x0034 : 0x0021),
                 3,
                 false
-            );
+            ).IexAsPlain(); // IEX: world text keeps the original letters
 
             text_obj.Time = Time.Ticks + 1500;
 

@@ -216,6 +216,19 @@ namespace ClassicUO.Game
 
         public Texture2D Texture { get; set; }
 
+        /// <summary>
+        /// IEX: drawn with the fonts' original letters, not the polished ones (FontsLoader.IexPolish):
+        /// text in the world (overhead speech, spells, names, damage) and the chat over the game view.
+        /// </summary>
+        public bool IexPlain { get; set; }
+
+        /// <summary>IEX: marks this text plain (see IexPlain) and returns it.</summary>
+        public RenderedText IexAsPlain()
+        {
+            IexPlain = true;
+            return this;
+        }
+
         public static RenderedText Create(
             string text,
             ushort hue = 0xFFFF,
@@ -245,6 +258,7 @@ namespace ClassicUO.Game
             r.SaveHitMap = saveHitmap;
             r.HTMLColor = 0xFFFF_FFFF;
             r.HasBackgroundColor = false;
+            r.IexPlain = false; // IEX: pooled, so reset
 
             if (r.Text != text)
             {
@@ -633,13 +647,13 @@ namespace ClassicUO.Game
                     if (charColor != 0)
                     {
                         entry = atlas.GetColoredEntry(
-                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, charColor
+                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, charColor, IexPlain
                         );
                     }
                     else
                     {
                         entry = atlas.GetEntry(
-                            charFont, si, IsUnicode, charBorder, charSolid, charItalic
+                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, IexPlain
                         );
                     }
 
@@ -654,13 +668,13 @@ namespace ClassicUO.Game
                     if (scale > 1.01f)
                     {
                         int percent = (int)MathF.Round(scale * 100f);
-                        int bearingX = entry.BearingX + (charBorder && IsUnicode || !IsUnicode && FontsLoader.IexPolish ? 1 : 0); // without the edge (IEX: polished ASCII letters carry one too)
+                        int bearingX = entry.BearingX + (charBorder && IsUnicode || !IsUnicode && FontsLoader.IexPolish && !IexPlain ? 1 : 0); // without the edge (IEX: polished ASCII letters carry one too)
                         float sx = (w + bearingX) * scale + 0.125f;
                         int ix = (int)MathF.Floor(sx);
                         int phase = (int)((sx - ix) * 4f) & 3;
 
                         GlyphAtlasEntry sized = atlas.GetSizedEntry(
-                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, charColor, percent, phase
+                            charFont, si, IsUnicode, charBorder, charSolid, charItalic, charColor, percent, phase, IexPlain
                         );
 
                         if (sized.IsValid)

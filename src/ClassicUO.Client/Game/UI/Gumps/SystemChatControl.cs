@@ -1085,7 +1085,7 @@ namespace ClassicUO.Game.UI.Gumps
                     isunicode,
                     FontStyle.BlackBorder,
                     maxWidth: (int)(320 / IEX.IexText.Scale) // IEX: text size
-                );
+                ).IexAsPlain(); // IEX: the chat over the game view keeps the original letters
                 _createdTime = Time.Ticks + Constants.TIME_DISPLAY_SYSTEM_MESSAGE_TEXT;
             }
 

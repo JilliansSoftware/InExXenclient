@@ -3790,7 +3790,7 @@ namespace ClassicUO.Assets
         /// Renders a single ASCII glyph into a pixel buffer with hue applied per-pixel.
         /// Matches the original GeneratePixelsASCII hue logic (GetPartialHueColor or GetColor).
         /// </summary>
-        public SingleGlyphInfo RenderSingleGlyphASCII(byte font, char c, ushort hue = 0, bool iexOutline = true)
+        public SingleGlyphInfo RenderSingleGlyphASCII(byte font, char c, ushort hue = 0, bool iexOutline = true, bool polish = true)
         {
             if (font >= FontCount)
                 return SingleGlyphInfo.Empty;
@@ -3816,7 +3816,7 @@ namespace ClassicUO.Assets
 
             bool isPartial = font != 5 && font != 8 && !UnusePartialHue;
 
-            if (IexPolish) // IEX: polished lettering (see IexPolishGlyph)
+            if (IexPolish && polish) // IEX: polished lettering (see IexPolishGlyph); not for world text
             {
                 return IexPolishGlyph(font, c, ref fcd, hue, isPartial, iexOutline);
             }

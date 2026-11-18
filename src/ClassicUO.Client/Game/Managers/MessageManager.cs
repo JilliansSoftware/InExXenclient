@@ -375,7 +375,7 @@ namespace ClassicUO.Game.Managers
                 false,
                 false,
                 textType == TextType.OBJECT
-            );
+            ).IexAsPlain(); // IEX: overhead text keeps the original letters
 
             textObject.Time = CalculateTimeToLive(textObject.RenderedText);
             textObject.RenderedText.Hue = textObject.Hue;

@@ -115,7 +115,7 @@ namespace ClassicUO.Game.GameObjects
                         color = 0x0058;
                     }
 
-                    rtext = RenderedText.Create($"[{perc}%]", color, 3, false);
+                    rtext = RenderedText.Create($"[{perc}%]", color, 3, false).IexAsPlain(); // IEX: world text keeps the original letters
                 }
             }
         }

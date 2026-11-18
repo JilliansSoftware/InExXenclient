@@ -52,7 +52,7 @@ namespace ClassicUO.Game.UI.Gumps
                 100,
                 30,
                 true
-            );
+            ).IexAsPlain(); // IEX: names over heads keep the original letters
 
             SetTooltip(entity);
 
