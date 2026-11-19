@@ -522,6 +522,19 @@ namespace ClassicUO.IEX.Launcher
 
             // account
             DrawText(g, "PLAY AS", label, Dim, new RectangleF(x, AccountBox.Y - 24, w, 18), StringAlignment.Near);
+            if (_tab == 0)
+            {
+                // copy one character's settings, layout and macros onto another
+                var cf = _f.Body(15);
+                const string copyText = "Copy setup…";
+                var cw = g.MeasureString(copyText, cf).Width;
+                var copyRect = new Rectangle((int)(x + w - cw - 2), AccountBox.Y - 27, (int)cw + 4, 22);
+                Hit("copy", copyRect);
+                DrawText(g, copyText, cf, Hot("copy") ? GoldHi : Gold, new RectangleF(copyRect.X + 2, copyRect.Y + 2, cw + 2, 20), StringAlignment.Near);
+                if (Hot("copy"))
+                    using (var p = new Pen(GoldHi))
+                        g.DrawLine(p, copyRect.X + 2, copyRect.Bottom - 1, copyRect.Right - 2, copyRect.Bottom - 1);
+            }
             if (_tab == 0 && _accounts.Count > 0)
             {
                 Hit("account", AccountBox);
@@ -831,6 +844,9 @@ namespace ClassicUO.IEX.Launcher
                 case "account":
                     _dropOpen = _accounts.Count > 1;
                     break;
+                case "copy":
+                    CopySetup();
+                    break;
                 case "skip":
                     LauncherData.SkipWindow = !LauncherData.SkipWindow;
                     break;
@@ -933,6 +949,19 @@ namespace ClassicUO.IEX.Launcher
                 return;
             Result = _args.Concat(LauncherData.ShardArgs(_shards[_shard])).ToArray();
             Close();
+        }
+
+        void CopySetup()
+        {
+            var characters = ProfileCopy.Characters(LauncherData.ProfilesRoot, LauncherData.ShardName);
+            if (characters.Count < 2)
+            {
+                MessageBox.Show(this, "Copying needs two characters that have played on In Ex Xen from this computer.", "In Ex Xen", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            var preferred = _accounts.Count > 0 ? _accounts[_account].LastCharacter : null;
+            using var dialog = new CopySetupDialog(characters, preferred, _f);
+            dialog.ShowDialog(this);
         }
 
         void EditShard(ShardEntry existing)

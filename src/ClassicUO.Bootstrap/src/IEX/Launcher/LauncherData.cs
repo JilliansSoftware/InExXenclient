@@ -117,13 +117,20 @@ namespace ClassicUO.IEX.Launcher
 
         // ---- accounts --------------------------------------------------------------------
 
+        public static string ProfilesRoot
+        {
+            get
+            {
+                var profiles = JsonString(SettingsText, "profilespath");
+                return string.IsNullOrWhiteSpace(profiles) ? Path.Combine(Root, "Data", "Profiles") : profiles;
+            }
+        }
+
         /// <summary>Accounts that have played on this shard from this install, plus the saved one.</summary>
         public static List<Account> Accounts()
         {
             var names = new List<string>();
-            var profiles = JsonString(SettingsText, "profilespath");
-            if (string.IsNullOrWhiteSpace(profiles))
-                profiles = Path.Combine(Root, "Data", "Profiles");
+            var profiles = ProfilesRoot;
 
             try
             {
