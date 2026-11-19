@@ -80,8 +80,13 @@ Write-Host ("Manifest: {0} files, {1} new asset(s), {2:N1} MB to upload" -f ($li
 if (-not $Publish) { Write-Host "Prepared in $out (not published)."; return }
 
 # Token from Git Credential Manager (same login git push uses).
-$cred = "protocol=https`nhost=github.com`n`n" | git credential fill
-$token = ($cred | Where-Object { $_ -like 'password=*' }) -replace '^password=', ''
+# The request goes in from a file: Windows PowerShell puts a byte-order mark in front of anything it
+# pipes or redirects into a program, and git then refuses it ("credential missing protocol field").
+$request = Join-Path $env:TEMP 'iex-credential-request.txt'
+[IO.File]::WriteAllText($request, "protocol=https`nhost=github.com`n`n", (New-Object Text.UTF8Encoding $false))
+$cred = cmd /c "git credential fill < `"$request`""
+Remove-Item $request -ErrorAction SilentlyContinue
+$token = (@($cred | Where-Object { $_ -like 'password=*' }) -join '') -replace '^password=', ''
 if (-not $token) { throw "No GitHub credential available" }
 $h = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json' }
 
@@ -93,11 +98,20 @@ $release = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$Re
 $upload = "https://uploads.github.com/repos/$Repo/releases/$($release.id)/assets?name="
 
 $files = @(Get-ChildItem $out -File) + @(Get-Item $installer) + @($unixPackages | ForEach-Object { Get-Item $_ })
-$i = 0
-foreach ($f in $files) {
-    $i++; Write-Host "[$i/$($files.Count)] $($f.Name)"
-    Invoke-RestMethod -Method Post -Uri ($upload + [Uri]::EscapeDataString($f.Name)) -Headers $h `
-        -ContentType 'application/octet-stream' -InFile $f.FullName -TimeoutSec 3600 | Out-Null
+# Uploads go through curl, which streams from disk: Invoke-RestMethod holds the whole file in memory
+# and drops the connection on the installer and the Linux/macOS packages (hundreds of MB).
+$headerFile = Join-Path $env:TEMP 'iex-gh-header.txt'
+[IO.File]::WriteAllText($headerFile, "Authorization: Bearer $token`n", (New-Object Text.UTF8Encoding $false))
+try {
+    $i = 0
+    foreach ($f in $files) {
+        $i++; Write-Host "[$i/$($files.Count)] $($f.Name)"
+        & curl.exe -sS --fail --retry 3 -H "@$headerFile" -H 'Content-Type: application/octet-stream' -X POST -T $f.FullName -o NUL ($upload + [Uri]::EscapeDataString($f.Name))
+        if ($LASTEXITCODE -ne 0) { throw "Upload of $($f.Name) failed (curl $LASTEXITCODE); the release is still a draft on GitHub" }
+    }
+}
+finally {
+    Remove-Item $headerFile -ErrorAction SilentlyContinue
 }
 Invoke-RestMethod -Method Patch -Uri "https://api.github.com/repos/$Repo/releases/$($release.id)" -Headers $h `
     -Body (@{ draft = $false } | ConvertTo-Json) | Out-Null
