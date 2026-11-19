@@ -47,56 +47,97 @@ namespace ClassicUO.IEX
         // local server and also allows http://127.0.0.1 asset URLs.
         static readonly string _testManifest = Environment.GetEnvironmentVariable("IEX_UPDATE_MANIFEST");
 
+        public static string Status => _status;
+        public static int Percent => _percent;
+        public static bool Done => _done;
+        /// <summary>True once an update replaced this exe and started the new one: this process should exit.</summary>
+        public static bool Relaunched => _relaunched;
+        static volatile bool _relaunched;
+
         /// <summary>Returns true when the updated exe was relaunched and this process should exit.</summary>
         public static bool Run(string[] args)
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            if (!Begin(args))
                 return false;
+
+            // Most launches finish the check instantly; only show a window when there is work.
+            if (!_worker.Join(700))
+            {
+                // WinForms wants an STA thread; the bootstrap's main thread is MTA.
+                var ui = new Thread(ShowProgressWindow) { Name = "IEX updater UI" };
+                ui.SetApartmentState(ApartmentState.STA);
+                ui.Start();
+                ui.Join();
+            }
+
+            _worker.Join();
+            return _relaunched;
+        }
+
+        static Thread _worker;
+
+        /// <summary>
+        /// Starts the update check on a worker thread and returns at once; Status, Percent and Done
+        /// report progress. Returns false (and Done is true) when updating is off for this launch.
+        /// </summary>
+        public static bool Begin(string[] args)
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+            {
+                _done = true;
+                return false;
+            }
 
             _root = AppContext.BaseDirectory;
 
             if (args.Any(a => a.Equals("-noupdate", StringComparison.OrdinalIgnoreCase)) || File.Exists(Path.Combine(_root, "noupdate")))
+            {
+                _status = "Updates are turned off";
+                _percent = 100;
+                _done = true;
                 return false;
+            }
 
             DeleteLeftovers();
 
-            // Several clients can start at once (multi-boxing); only one updates, the rest wait.
-            using var mutex = new Mutex(false, "InExXenClientUpdater");
-            try
+            _worker = new Thread(() =>
             {
-                if (!mutex.WaitOne(TimeSpan.FromMinutes(10)))
-                    return false;
-            }
-            catch (AbandonedMutexException) { }
-
-            try
-            {
-                bool relaunch = false;
-                var worker = new Thread(() =>
+                // Several clients can start at once (multi-boxing); only one updates, the rest wait.
+                using var mutex = new Mutex(false, "InExXenClientUpdater");
+                bool owned = false;
+                try
                 {
-                    try { relaunch = Update(args); }
-                    catch (Exception e) { Log("update failed: " + e); }
-                    finally { _done = true; }
-                }) { IsBackground = true, Name = "IEX updater" };
-                worker.Start();
+                    try
+                    {
+                        owned = mutex.WaitOne(0);
+                        if (!owned)
+                        {
+                            _status = "Waiting for another In Ex Xen window to finish updating...";
+                            owned = mutex.WaitOne(TimeSpan.FromMinutes(10));
+                        }
+                    }
+                    catch (AbandonedMutexException) { owned = true; }
 
-                // Most launches finish the check instantly; only show a window when there is work.
-                if (!worker.Join(700))
-                {
-                    // WinForms wants an STA thread; the bootstrap's main thread is MTA.
-                    var ui = new Thread(ShowProgressWindow) { Name = "IEX updater UI" };
-                    ui.SetApartmentState(ApartmentState.STA);
-                    ui.Start();
-                    ui.Join();
+                    if (owned)
+                        _relaunched = Update(args);
                 }
-
-                worker.Join();
-                return relaunch;
-            }
-            finally
-            {
-                mutex.ReleaseMutex();
-            }
+                catch (Exception e)
+                {
+                    Log("update failed: " + e);
+                    _status = "Could not check for updates";
+                }
+                finally
+                {
+                    if (owned)
+                        mutex.ReleaseMutex();
+                    if (!_relaunched && _status.StartsWith("Checking"))
+                        _status = "All files up to date";
+                    _percent = 100;
+                    _done = true;
+                }
+            }) { IsBackground = true, Name = "IEX updater" };
+            _worker.Start();
+            return true;
         }
 
         static bool Update(string[] args)
@@ -111,6 +152,9 @@ namespace ClassicUO.IEX
             catch (Exception e)
             {
                 Log("manifest unavailable, starting without update: " + e.Message);
+                _status = e is WebException { Response: HttpWebResponse { StatusCode: HttpStatusCode.NotFound } }
+                    ? "No update published yet"
+                    : "Could not reach the update server";
                 return false;
             }
 
@@ -156,6 +200,7 @@ namespace ClassicUO.IEX
 
             _status = "Installing update...";
             _percent = 100;
+            Thread.CurrentThread.IsBackground = false; // closing the launcher must not stop a half-done swap
             var swapped = new List<Entry>();
             try
             {
@@ -186,6 +231,7 @@ namespace ClassicUO.IEX
                 foreach (var e in needed)
                     TryDelete(Full(e.Path) + TempSuffix);
                 _status = "Close other In Ex Xen windows to finish updating.";
+                Thread.CurrentThread.IsBackground = true;
                 Thread.Sleep(3000);
                 return false;
             }
@@ -197,6 +243,8 @@ namespace ClassicUO.IEX
             }
             SaveCache(cache);
             Log("update installed");
+            _status = "Update installed";
+            Thread.CurrentThread.IsBackground = true;
 
             var self = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
             if (needed.Any(e => e.Path.Equals(self, StringComparison.OrdinalIgnoreCase)))

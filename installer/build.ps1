@@ -1,4 +1,4 @@
-# Builds installer\output\InExXen-Setup.exe from this repo.
+﻿# Builds installer\output\InExXen-Setup.exe from this repo.
 #   powershell -ExecutionPolicy Bypass -File installer\build.ps1 [-UODir "C:\Program Files\Ultima Online 2D"]
 # Steps: compile the client (Bootstrap exe + NativeAOT cuo.dll), download Razor CE,
 # copy UO data from a reference install (read only, never modified), compile InExXen.iss,
@@ -52,6 +52,11 @@ Get-ChildItem $stage -Recurse -Include *.pdb, *.nsi, *.nsh | Remove-Item -Force
 
 # ClassicUO is BSD-2-Clause: its copyright notice ships with the binaries.
 Copy-Item (Join-Path $repo 'LICENSE.md') "$stage\ClassicUO-LICENSE.txt"
+# The launcher embeds EB Garamond and Grenze Gotisch (SIL OFL): their licences ship alongside.
+Copy-Item (Join-Path $repo 'src\ClassicUO.Bootstrap\src\IEX\Launcher\OFL-EBGaramond.txt') "$stage\Font-EBGaramond-OFL.txt"
+Copy-Item (Join-Path $repo 'src\ClassicUO.Bootstrap\src\IEX\Launcher\OFL-GrenzeGotisch.txt') "$stage\Font-GrenzeGotisch-OFL.txt"
+# The launcher's news and links when GitHub can't be reached on first start.
+Copy-Item (Join-Path $repo 'launcher.txt') "$stage\launcher.txt"
 
 # UO data: everything ClassicUO reads; skip EA executables, UO3D files, personal config.
 $skip = @('*.exe', '*.dll', '*.zip', '*.bin', 'Blueprints.tbp', 'Login.cfg', 'uo.cfg', 'Uoreg.cfg',

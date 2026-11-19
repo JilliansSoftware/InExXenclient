@@ -1,0 +1,25 @@
+# Links and patch notes shown in the In Ex Xen launcher.
+# The launcher downloads this file from the inexxen branch on GitHub every time it starts, so
+# pushing a change here updates every player's launcher without a client release.
+#
+#   link <Name> <https://...>     Website, Discord, Wiki and Account get their own icons; up to 6 links
+#   == <Title> | <date>           starts an update, newest first
+#   - <line>                      a line of that update
+#
+# link Website https://inexxen.com
+# link Discord https://discord.gg/your-invite
+# link Wiki https://...
+# link Account https://...
+
+== Silver wood of the Papuan wilds | 18 Nov
+- Gnarled cypresses grow in the jungle west of Papua.
+- They are now the only source of silver wood for lumberjacks.
+
+== Polished window lettering | 18 Nov
+- Gilded letters in the journal, skills and paperdoll; dark text is engraved.
+- Health bars: painted fills, carved sockets and names on a ribbon.
+- The journal has a title and room to breathe; the skills window shows your total on a plate.
+- Resize corners are easier to grab.
+
+== Smoother zoom | 17 Nov
+- Ctrl + mouse wheel zooms the game view, and it glides instead of stepping.

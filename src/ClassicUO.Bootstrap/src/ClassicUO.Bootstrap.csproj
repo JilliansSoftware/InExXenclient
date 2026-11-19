@@ -21,8 +21,9 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
 
-  <!-- IEX: auto-updater window -->
+  <!-- IEX: auto-updater and launcher windows -->
   <ItemGroup>
+    <EmbeddedResource Include="IEX\Launcher\*.ttf;IEX\Launcher\*.png" LogicalName="IEX.%(Filename)%(Extension)" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
   </ItemGroup>
